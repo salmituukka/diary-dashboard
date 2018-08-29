@@ -1,4 +1,5 @@
 import os
+from pathlib import Path
 import firebase_admin
 from firebase_admin import credentials
 from firebase_admin import db
@@ -31,10 +32,12 @@ def connect_to_firebase():
 def saveToFirebase(parsed_diary):
     # Save parsed markdown metas and markdown file itself to firebase
     root = db.reference('')
-    # Add a new user under /users.
-    meta = root.child('diary_metas').push(parsed_diary['metadata'])
-    root.child('diary_bodies').push(parsed_diary['body'])
-    return meta
+    root.child('diary_metas').child(parsed_diary['metadata']['date']).set(
+      parsed_diary['metadata']
+    )
+    root.child('diary_bodies').child(parsed_diary['metadata']['date']).set(
+      parsed_diary['body']
+    )
 
 # Instantiate the parser
 parser = argparse.ArgumentParser(description='Optional app description')
