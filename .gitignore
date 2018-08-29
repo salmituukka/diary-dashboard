@@ -1,0 +1,14 @@
+# dependencies
+/node_modules
+
+# Git
+/.git
+
+# Visual Studio Code -settings
+/.vscode
+
+# Built app
+/build
+
+# Firebase deployment stuff
+/.firebase
