@@ -3,8 +3,6 @@
 ## Steps
 ### Setup Firebase project
 https://firebase.google.com/
-### Deploy dashboard app to Firebase
-https://firebase.google.com/docs/hosting/deploying
 ### Make diary notes for each day
 Format :
 ```
@@ -20,3 +18,14 @@ Diary text in markdown format
 ```
 ### Upload diary notes to Firebase 
 [Use this script to upload diary notes](scripts/upload_diary.py)
+
+### Index databases
+ Index databases based on "date" for better performance
+
+### Deploy dashboard app 
+
+For example in Firebase: 
+
+- https://firebase.google.com/docs/hosting/deploying
+
+### 

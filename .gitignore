@@ -12,3 +12,5 @@
 
 # Firebase deployment stuff
 /.firebase
+firebase.json
+.firebaserc
