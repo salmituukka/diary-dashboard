@@ -20,7 +20,7 @@ class LandingPage extends Component {
           </div>
         </div>
         <div>
-          <a href="https://github.com/salmituukka/diary-dashboard/Usage.md">Short instructions</a>
+          <a href="https://github.com/salmituukka/diary-dashboard/blob/master/Usage.md#usage-of-learning-service">Short instructions</a>
         </div>
       </div>  
     );

@@ -10,17 +10,24 @@ One can define multiple learning branches from this section. The different branc
 
 ### Biography section
 
-This section is so far completely separate for others. This is basically interactive CV.
+This section is so far completely separate for others. This is basically interactive CV containing two sections:
+
+1. events contains all the interesting events in timeline
+2. skills contains all relevant skills in word cloud. One can define few issues per skill
+   1. weight (affects to font size) describes how good one is at the specified skill
+   2. preference (affects to location of the word in the word cloud) describes how one likes the area
+   3. groups helps one to filter all the skills from the selected groups 
+
 ### Mission section
 This section contains the goal of the learning process. This section have also no interactions with other sections.  
 ### Plan section
-This sections contains learning plan. [ Some sections of plans may be accociated to diary](###plan) so that plan progress is shown when corresponding [planning tags are added to the diary](###diary).
+This sections contains learning plan. [ Some sections of plans may be accociated to diary](#plan) so that plan progress is shown when corresponding [planning tags are added to the diary](#diary).
 ### Principles section
-This section contains some principles that are wanted to be tracked. Principles are tracked from [Diary](###diary). It is possible to track only some of the principles for each day. This section renders with color codes how well principles are came true at average level.
+This section contains some principles that are wanted to be tracked. Principles are tracked from [Diary](#diary). It is possible to track only some of the principles for each day. This section renders with color codes how well principles are came true at average level.
 
 ### Diary section
 
-This section shows what issues are learnt for each day. Moreover, the section shows how well tracked principles or other events are came true with the selected time frame. In addition, gauge shows which ratio of the planning tags are in the latest learning plan. Diary events are added using markdown format described [here](###diary)
+This section shows what issues are learnt for each day. Moreover, the section shows how well tracked principles or other events are came true with the selected time frame. In addition, gauge shows which ratio of the planning tags are in the latest learning plan. Diary events are added using markdown format described [here](#diary)
 ### Privacy
 
 This section contains settings that which items others can see. By the default all the items are private. Privacy is set per branch.
@@ -60,3 +67,5 @@ Biography items can be set one by one or imported from json file.  An example fi
   ]
 }
 ```
+
+For skills, weights are assumed to be integers from range [1,5] and preferences are integers from range[1,3].

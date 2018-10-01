@@ -1,6 +1,6 @@
 # Continous Learning Service
 
-This file describes how to deploy the service on Firebase. For usage instructions, see separate [usage document] (./Usage.md) 
+This file describes how to deploy the service on Firebase. For usage instructions, see separate [usage document](./Usage.md) 
 
 ## Deployment
 ### Setup Firebase project
