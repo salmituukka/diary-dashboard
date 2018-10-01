@@ -208,7 +208,7 @@ export default class Highlight extends AbstractSeries {
       color,
       opacity
     } = this.props;
-    const { drawArea: { left, right, top, bottom } } = this.state;
+    const { drawArea: { left, right } } = this.state;
     return (
       <g
         transform={`translate(${marginLeft}, ${marginTop})`}

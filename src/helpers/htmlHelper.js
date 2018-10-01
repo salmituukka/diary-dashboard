@@ -1,49 +1,6 @@
-import React, { Component } from 'react';
-import ReactDOM from 'react-dom';
-import renderHTML from 'react-render-html';
-import * as showdown from 'showdown';
-    
-class Document extends Component {
-  constructor(props) {
-    super(props);
-    this.containerEl = document.createElement('div');
-    this.externalWindow = null;
-    this.converter = new showdown.Converter();
-  }
-
-  componentDidMount() {
-    this.externalWindow = window.open('', 'Notes', 'width=600,height=400,left=200,top=200');
-
-    if (!!this.externalWindow) {      
-      this.externalWindow.document.body.appendChild(this.containerEl);
-      this.externalWindow.addEventListener('unload', this.props.documentClosedCallback);
-    }
-  }
-
-  componentWillUnmount() {
-    if (!!this.externalWindow) {
-      this.externalWindow.close();
-    }
-  }
-
-  // This is miserable hack for getting ä and ö letters right.
-  // Root cause is probably that pushing data to Firebase in UTF-8 formats does not work
-  replaceAO(original) {
-    return original.replace(/Ã¤/g,'ä').replace(/Ã¶/g,'ö');
-  }
-
-  render() {
-    if (!!this.externalWindow) {  
-      this.externalWindow.name = this.props.title;
-      this.externalWindow.focus(); 
-    }
-    return (
-    ReactDOM.createPortal(renderHTML(this.htmlTemplate(this.converter.makeHtml(this.replaceAO(this.props.markdownDocument)))), this.containerEl)    
-    );
-  }
   // HTML template is copied from Tyopras Github theme
-  htmlTemplate(content) {
-    return `<!doctype html>\
+  export const githubTemplate = ((content) => 
+    `<!doctype html>\
     <html>\
     <head>\
     <meta charset='UTF-8'><meta name='viewport' content='width=device-width initial-scale=1'>\
@@ -274,8 +231,20 @@ class Document extends Component {
     ${content}\
     </div>\
     </body>\
-    </html>`;
-  }
-}
+    </html>`
+  );
 
-export default Document;
+  export const replaceTagsByColor = (textWithTags, tagsWithValues) => {
+    const tagMultiplier = 3;
+    const re = /{[^{}]*}@(?:((\w|-)+))/gm;
+    var colorCodedText = textWithTags
+    var match = re.exec(textWithTags);
+    while (match) {
+      /*var colorCodedInsideBlock = '{' + replaceTagsByColor(match[0].slice(1), mapValues(tagsWithValues, val => val + tagsWithValues[match[1]]));
+      colorCodedText = colorCodedText.replace(match[0], colorCodedInsideBlock)*/
+      const greenColor = !!tagsWithValues[match[1]] ? Math.max(0, 255-(tagsWithValues[match[1]]*tagMultiplier)): 255
+      colorCodedText = colorCodedText.replace(/{(?:([^{}]*))}@(\w|-)+/m, `<span style="background-color:rgb(${greenColor},255,${greenColor})">$1</span>`); 
+      match = re.exec(textWithTags);
+    } 
+    return colorCodedText;
+  }

@@ -3,23 +3,34 @@
   "version": "0.1.0",
   "private": true,
   "dependencies": {
+    "@material-ui/core": "^3.0.2",
+    "@material-ui/icons": "^3.0.1",
     "browser-sync": "^2.24.6",
     "firebase": "^5.4.1",
     "lodash": "^4.17.10",
     "moment": "^2.22.2",
     "pondjs": "^0.8.9",
     "react": "^16.4.2",
+    "react-burger-menu": "^2.5.2",
     "react-d3-cloud": "^0.6.0",
     "react-dom": "^16.4.2",
     "react-render-html": "^0.6.0",
+    "react-router-dom": "^4.3.1",
     "react-scripts": "1.1.5",
+    "react-svg-gauge": "^1.0.8",
     "react-vis": "^1.10.7",
-    "showdown": "^1.8.6"
+    "react-visjs-timeline": "^1.5.0",
+    "showdown": "^1.8.6",
+    "vis-react": "^0.3.0",
+    "wordcloud": "^1.1.0"
   },
   "scripts": {
     "start": "react-scripts start",
     "build": "react-scripts build",
     "test": "react-scripts test --env=jsdom",
     "eject": "react-scripts eject"
+  },
+  "devDependencies": {
+    "react-unit": "^3.0.3"
   }
 }

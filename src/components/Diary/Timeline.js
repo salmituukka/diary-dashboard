@@ -10,40 +10,25 @@ import {
 } from 'react-vis/dist';
 import zipWith from 'lodash/zipWith';
 import map from 'lodash/map';
+import range from 'lodash/range';
 import Highlight from './Highlight';
 import Document from './Document';
 import moment from 'moment';
-import fire from '../firebase/firebase';
+import {db} from '../../firebase';
+import {MAX_VAL, MIN_VAL} from '../../constants/timeseries';
+
+const DOC_COULD_NOT_BE_LOADED_TEXT = '#Document could not be loaded\nYou might not have priviledges for the document.'
+
 class Timeline extends Component {
 
   constructor(props) {
     super(props);
-    this.storage = fire.storage();
     this.state = {
         showDocument: false,
         documentTitle: '',
         markdownDocument: 'Loading document...',
-        width: 0, 
-        height: 0,
         lastDrawLocation: null
     };
-    this.updateWindowDimensions = this.updateWindowDimensions.bind(this);
-  }
-
-  componentDidMount() {
-    this.updateWindowDimensions(this.props.heightRatio);
-    window.addEventListener('resize', () => this.updateWindowDimensions(this.props.heightRatio));
-   }
-
-   componentWillUnmount() {
-    window.removeEventListener('resize', this.updateWindowDimensions);
-  }
-  
-  updateWindowDimensions(heightRatio) {
-    this.setState({ 
-      width: window.innerWidth, 
-      height: window.innerHeight * heightRatio, 
-      });
   }
 
   documentClosed() {
@@ -58,32 +43,32 @@ class Timeline extends Component {
         visbile: serie.visible,
         data: zipWith(this.props.dates, serie.data, (date, data) => {
           return {
-            x: date.valueOf(), y: data
+            x: date.valueOf(), y: parseInt(data, 10) + ((Math.random() - 0.5)*0.2)
           };
         })
       };
     });
 
-    const notesY = 3.5;
+    const notesY = MIN_VAL - 0.5;
 
     return (
       <div className = "timeline">      
         <div className = "legend">
           <DiscreteColorLegend
-            height={100}
-            width={100}
+            maxHeight={Math.max(this.props.height-100, 350)}
+            width={90}
             colors={map(series, serie => serie.color)}
             items={map(series, serie => serie.title)}
           />
         </div>
         <div className = "timeline-plot">
           <XYPlot
-            margin = {{left: 50, right: 10, top: 10, bottom: 40}}
+            margin = {{left: 50, right: 15, top: 15, bottom: 0}}
             xDomain={this.state.lastDrawLocation && [this.state.lastDrawLocation.left, this.state.lastDrawLocation.right]}
-            yDomain={[3, 10]}
+            yDomain={[MIN_VAL-1, MAX_VAL]}
             xType="time"
-            width={this.state.width-100}
-            height={this.state.height-100}>
+            width={this.props.width-120}
+            height={this.props.height-100}>
             <Highlight
               onBrushEnd={(area) => {
                 this.setState(
@@ -116,15 +101,22 @@ class Timeline extends Component {
               })}
               onValueClick={(datapoint)=>{
                 const date = moment(datapoint.x).format('YYYYMMDD');
-                this.documentRef = fire.database().ref('diary_bodies').orderByChild("date").equalTo(date)
-                this.documentRef.on("child_added", function(dataSnapshot) {
-                  this.setState({documentTitle: `Notes ${date}` , showDocument: true, markdownDocument: dataSnapshot.val().text});
-                }.bind(this));                  
+                db.getNotes(this.props.userId, this.props.branchId, date, function(dataSnapshot) {
+                  const value = dataSnapshot.val()
+                  if (dataSnapshot != null) {
+                    this.setState({documentTitle: `Notes ${date}`, showDocument: true, markdownDocument: value.text});
+                  } else {
+                    this.setState({documentTitle: `Notes ${date}`, showDocument: true, markdownDocument: DOC_COULD_NOT_BE_LOADED_TEXT});
+                  }
+                }.bind(this),
+                function() {
+                  this.setState({documentTitle: `Notes ${date}`, showDocument: true, markdownDocument: DOC_COULD_NOT_BE_LOADED_TEXT});
+                }.bind(this))                                
               }}
-            />           
+            /> 
             <XAxis/>
             <YAxis 
-              tickValues = {[notesY, 4, 5, 6, 7, 8, 9, 10]}
+              tickValues = {[notesY].concat(range(MIN_VAL, MAX_VAL+0.001))}
               tickTotal = {8}
               tickFormat = {v => v === notesY ? `Notes`: v}
               />
@@ -132,7 +124,7 @@ class Timeline extends Component {
           </XYPlot>  
         </div>      
         {this.state.showDocument && (
-          <Document          
+          <Document
             markdownDocument = {this.state.markdownDocument}
             title = {this.state.documentTitle}
             documentClosedCallback = {this.documentClosed.bind(this)}

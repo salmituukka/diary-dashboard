@@ -1,0 +1,9 @@
+export const LANDING = '/';
+export const BRANCHES = '/branches';
+export const DIARY = '/diary';
+export const HOME = BRANCHES;
+export const MISSION = '/mission';
+export const PLAN = '/plan';
+export const PRINCIPLES = '/principles';
+export const BIO = '/bio';
+export const SETTINGS = '/settings';

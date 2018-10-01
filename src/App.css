@@ -9,6 +9,15 @@
   height: 80px;
 }
 
+.center {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  -moz-transform: translateX(-50%) translateY(-50%);
+  -webkit-transform: translateX(-50%) translateY(-50%);
+  transform: translateX(-50%) translateY(-50%);
+}
+
 .App-header {
   background-color: #222;
   height: 150px;
@@ -26,6 +35,49 @@
 
 .legend{
   float: right;
+}
+
+.column{
+  float: left;
+  width: 50%;
+}
+
+.column3First{
+  float: left;
+  width: 33%;
+  padding: 0px;
+  margin: 0px;
+}
+
+.column3{
+  float: left;
+  width: 33%;
+  border-left: 2px solid;
+  padding: 0px;
+  margin: 0px;
+}
+
+.disabledAnchor{
+  pointer-events: none !important;
+  cursor: default;
+  color:Gray;
+}
+
+/* Clear floats after the columns */
+.row:after {
+  content: "";
+  display: table;
+  clear: both;
+}
+
+.top-center {
+    position: absolute;
+    top: 0px;
+}
+
+.center-50{
+  margin-left: 25%;
+  width: 50%;
 }
 
 @keyframes App-logo-spin {

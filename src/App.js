@@ -1,75 +1,64 @@
 import React, { Component } from 'react';
-import './App.css';
-import TagCloud from './components/TagCloud';
-import Timeline from './components/Timeline';
-import flatten from 'lodash/flatten';
-import moment from 'moment';
-import fire from './firebase/firebase';
+import {
+  BrowserRouter as Router,
+  Route,
+} from 'react-router-dom';
+
+import Branches from './components/Branches/Branches';
+import LandingPage from './components/Landing/Landing';
+import Diary from './components/Diary/Diary';
+import Biography from './components/Biography/Biography';
+import Mission from './components/Mission/Mission';
+import Plan from './components/Plan/Plan';
+import Settings from './components/Settings/Settings';
+import Principles from './components/Principles/Principles';
+import withAuthentication from './components/withAuthentication';
+
+import * as routes from './constants/routes';
+
 
 class App extends Component {
-  componentDidMount() {
-    this.diaryMetasRef = fire.database().ref('diary_metas').orderByChild("date");
-    this.diaryMetasRef.on("child_added", function(dataSnapshot) {
-      this.setState({ metas: this.state.metas.concat([dataSnapshot.val()])});
-    }.bind(this));
-  }
-
-  componentWillUnmount() {
-    this.diaryMetasRef.off();
-  }
-
-  constructor(props) {
-    super(props);
   
-    this.state = {      
-      metas: [],
-      dates: null
-    };   
-  }
-
-  zoomCallback(zoomArea) {
-    this.setState({dates: !!zoomArea ? [
-      moment(zoomArea.left.valueOf()).format('YYYYMMDD'),
-      moment(zoomArea.right.valueOf()).format('YYYYMMDD')
-    ] : null})
-  }
-  
-  render() {
-    const timelineSeries= {
-      studies: {
-        title: 'Study progress',
-        color: 'red',
-        data: this.state.metas.map(meta => meta.studies),
-        visible: true
-      },
-      vibes: {
-        title: 'Vibe',
-        color: 'blue',
-        data: this.state.metas.map(meta => meta.vibe),
-        visible: true
-      }
-    }
+  render () {
     return (
-      <div>
-        <TagCloud 
-          tags = {
-            // Filter tags if timeline is zoomed
-            !this.state.dates ? flatten(this.state.metas.map(meta => meta.tags))
-            :  flatten(this.state.metas.filter(
-              meta => meta.date >= this.state.dates[0] && meta.date <= this.state.dates[1]
-            ).map(meta => meta.tags))
-          }
-          heightRatio = {0.5} 
-        />
-      <Timeline
-        dates = {this.state.metas.map(meta => moment(meta.date, "YYYYMMDD"))}
-        series = {timelineSeries}
-        heightRatio = {0.5} 
-        zoomCallback = {this.zoomCallback.bind(this)}
-      /> 
-      </div>
+      <Router>
+        <div>
+          <Route
+            exact path={routes.LANDING}
+            component={LandingPage}
+          />          
+          <Route
+            path={`${routes.BRANCHES}/:userId?`}
+            component={ Branches}
+          />          
+          <Route
+            path={`${routes.DIARY}/:branchId/:userId?`}
+            component={ Diary}
+          />
+          <Route
+            path={`${routes.MISSION}/:branchId/:userId?`}
+            component={Mission}
+          />
+          <Route
+            path={`${routes.PLAN}/:branchId/:userId?`}
+            component={Plan}
+          />
+          <Route
+            path={`${routes.PRINCIPLES}/:branchId/:userId?`}
+            render={Principles}
+          />
+          <Route
+            path={`${routes.BIO}/:branchId/:userId?`}
+            render={Biography}
+          />          
+          <Route
+            path={`${routes.SETTINGS}/:branchId/:userId?`}
+            render={Settings}
+          /> 
+        </div>
+      </Router>
     );
   }
 }
 
-export default App;
+export default withAuthentication(App);
