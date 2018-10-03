@@ -5,7 +5,7 @@ class TagCloud extends Component {
   render() {
     var counts = countBy(this.props.tags);
     var data = Object.getOwnPropertyNames(counts).map(a => {return {text: a, value: counts[a]}});
-    var maxFontSize = 80
+    var maxFontSize = this.props.width / 10;
     var maxDataCount = Math.max(...data.map(d=> d.value))
     var scale = maxFontSize / maxDataCount
     const fontSizeMapper = word => word.value * scale;

@@ -5,6 +5,7 @@ import Timeline from './Timeline';
 import flatten from 'lodash/flatten';
 import map from 'lodash/map';
 import uniq from 'lodash/uniq';
+import filter from 'lodash/filter';
 import keyBy from 'lodash/keyBy';
 import moment from 'moment';
 import {db} from '../../firebase';
@@ -79,7 +80,7 @@ class Diary extends Component {
 
   zoomCallback(zoomArea) {
     this.setState({dates: !!zoomArea ? [
-      moment(zoomArea.left.valueOf()).format('YYYYMMDD'),
+      moment(zoomArea.left.valueOf()).add(1,'day').subtract(1,'second').format('YYYYMMDD'),
       moment(zoomArea.right.valueOf()).format('YYYYMMDD')
     ] : null})
   }
@@ -116,12 +117,12 @@ class Diary extends Component {
     });
     const metaForDates = metaRatings.length > 0 ? metaRatings: metaTags;
     const allPlanningTags = !this.state.dates ? flatten(metaTags.map(meta => meta.planTags))
-                :  flatten(metaTags.filter(
+                :  flatten(filter(metaTags,
                   meta => meta.date >= this.state.dates[0] && meta.date <= this.state.dates[1]
                 ).map(meta => meta.planTags));
     const re = /{[^{}]*}@(?:((\w|-)+))/gm;
     const planningTagsInLatestPlan = plans.length > 0 ? plans[plans.length-1].plan.match(re).map(a => a.substring(a.indexOf('@')+1)): [];
-    const numPlanningTagsInLatestPlan = allPlanningTags.filter(tag => planningTagsInLatestPlan.indexOf(tag) >= 0).length;
+    const numPlanningTagsInLatestPlan = filter(allPlanningTags, tag => planningTagsInLatestPlan.indexOf(tag) >= 0).length;
     const ratioOfPlanningTagsInLatestPlan = Math.round(100 * numPlanningTagsInLatestPlan / allPlanningTags.length);
     return (
       <div>    
@@ -130,9 +131,9 @@ class Diary extends Component {
             <TagCloud 
               tags = {
                 // Filter tags if timeline is zoomed
-                !this.state.dates ? flatten(metaTags.map(meta => meta.tags))
-                :  flatten(metaTags.filter(
-                  meta => meta.date >= this.state.dates[0] && meta.date <= this.state.dates[1]
+                !this.state.dates ? flatten(filter(metaTags, meta=>!!meta.tags).map(meta => meta.tags))
+                :  flatten(filter(metaTags,
+                  meta => meta.date >= this.state.dates[0] && meta.date <= this.state.dates[1] && !!meta.tags
                 ).map(meta => meta.tags))
               }
               height = {0.45 * this.state.height}
