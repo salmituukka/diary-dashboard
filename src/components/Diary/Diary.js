@@ -122,7 +122,7 @@ class Diary extends Component {
     const re = /{[^{}]*}@(?:((\w|-)+))/gm;
     const planningTagsInLatestPlan = plans.length > 0 ? plans[plans.length-1].plan.match(re).map(a => a.substring(a.indexOf('@')+1)): [];
     const numPlanningTagsInLatestPlan = allPlanningTags.filter(tag => planningTagsInLatestPlan.indexOf(tag) >= 0).length;
-    const ratioOfPlanningTagsInLatestPlan = 100 * numPlanningTagsInLatestPlan / allPlanningTags.length;
+    const ratioOfPlanningTagsInLatestPlan = Math.round(100 * numPlanningTagsInLatestPlan / allPlanningTags.length);
     return (
       <div>    
         <div className = "row">
