@@ -8,6 +8,8 @@ import {githubTemplate, replaceTagsByColor} from '../../helpers/htmlHelper';
 import {uploadPlan} from "../../helpers/uploadHelper";
 import flatten from 'lodash/flatten';
 import countBy from 'lodash/countBy';
+import filter from 'lodash/filter';
+import moment from 'moment';
 import map from 'lodash/map';
 import withAuthorization from '../withAuthorization';
 import AlertDialog from '../AlertDialog';
@@ -71,6 +73,16 @@ class Plan extends Component {
   render() {
     const { metas, plans } = this.state;
     const tagCounts = countBy(flatten(map(metas, meta => meta.planTags)));
+    const tagCountsUsedWithinWeek = countBy(
+      flatten(
+        map(
+          filter(
+            metas, meta => moment().diff(moment(meta.date, "YYYYMMDD"), 'days') < 7
+          ), 
+          meta => meta.planTags
+        )
+      )
+    );
     return (
       <div>
         <AddFileButton 
@@ -93,7 +105,8 @@ class Plan extends Component {
                   this.converter.makeHtml(
                     plans[plans.length-1].plan
                   ),
-                  tagCounts
+                  tagCounts,
+                  tagCountsUsedWithinWeek
                 )
               )
             )}

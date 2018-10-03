@@ -234,7 +234,7 @@
     </html>`
   );
 
-  export const replaceTagsByColor = (textWithTags, tagsWithValues) => {
+  export const replaceTagsByColor = (textWithTags, tagsWithValues, tagsWithValues2) => {
     const tagMultiplier = 3;
     const re = /{[^{}]*}@(?:((\w|-)+))/gm;
     var colorCodedText = textWithTags
@@ -242,9 +242,12 @@
     while (match) {
       /*var colorCodedInsideBlock = '{' + replaceTagsByColor(match[0].slice(1), mapValues(tagsWithValues, val => val + tagsWithValues[match[1]]));
       colorCodedText = colorCodedText.replace(match[0], colorCodedInsideBlock)*/
-      const greenColor = !!tagsWithValues[match[1]] ? Math.max(0, 255-(tagsWithValues[match[1]]*tagMultiplier)): 255
-      colorCodedText = colorCodedText.replace(/{(?:([^{}]*))}@(\w|-)+/m, `<span style="background-color:rgb(${greenColor},255,${greenColor})">$1</span>`); 
+      const greenColor = !!tagsWithValues[match[1]] ? Math.max(0, 255-(tagsWithValues[match[1]]*tagMultiplier)): 255;
+      const blinking = !!tagsWithValues2[match[1]] ? tagsWithValues2[match[1]] > 0: false;
+      const blinkingStyle = blinking ? ' className="blink_text"' :'';
+      colorCodedText = colorCodedText.replace(/{(?:([^{}]*))}@(\w|-)+/m, `<span style="background-color:rgb(${greenColor},255,${greenColor})"><span ${blinkingStyle}>$1</span></span>`);
+      
       match = re.exec(textWithTags);
-    } 
+    }
     return colorCodedText;
   }
