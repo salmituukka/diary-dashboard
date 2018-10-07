@@ -50,7 +50,7 @@ class Timeline extends Component {
     });
 
     const notesY = MIN_VAL - 0.5;
-
+const xTicks = map(this.props.dates, date => date.valueOf());
     return (
       <div className = "timeline">      
         <div className = "legend">
@@ -63,7 +63,7 @@ class Timeline extends Component {
         </div>
         <div className = "timeline-plot">
           <XYPlot
-            margin = {{left: 50, right: 15, top: 15, bottom: 0}}
+            margin = {{left: 50, right: 15, top: 15, bottom: 30}}
             xDomain={this.state.lastDrawLocation && [this.state.lastDrawLocation.left, this.state.lastDrawLocation.right]}
             yDomain={[MIN_VAL-1, MAX_VAL]}
             xType="time"
@@ -114,7 +114,13 @@ class Timeline extends Component {
                 }.bind(this))                                
               }}
             /> 
-            <XAxis/>
+            <XAxis
+              tickValues = {xTicks}
+              tickFormat = {v=>moment(v).format('DD/MM')}
+              tickLabelAngle = {90}
+              tickPadding = {25}
+              tickSize = {4}
+             />
             <YAxis 
               tickValues = {[notesY].concat(range(MIN_VAL, MAX_VAL+0.001))}
               tickTotal = {8}
