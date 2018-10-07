@@ -43,15 +43,28 @@ const checkbox = (height) => {
 
 
 class SingleSkillCloud extends React.Component {
-
+  constructor(props) {
+    super(props);
+    this.state = { hover: undefined };
+  }
   componentDidMount() {
     this.plotWordCloud();
   }
-  componentDidUpdate() {
-    this.plotWordCloud();
+  componentDidUpdate(prevProps) {
+    if (this.props !== prevProps)  {
+      this.plotWordCloud();
+    }
   }  
   clickSkillCallback(item) {
     this.props.clickSkillCallback(item[0], this.props.canvas);
+  }
+  showHover (item, dimension) {
+    if (!!item) {
+      const hover = {text: item[2], dimension: dimension};
+      this.setState({hover});
+    } else if (!!this.state.hover) {
+      this.setState({hover: undefined});
+    }
   }
   plotWordCloud() {
 
@@ -77,7 +90,7 @@ class SingleSkillCloud extends React.Component {
       ctx.fillStyle = 'rgba(0,0,0,1)';
       ctx.fill();   
 
-      const skillsWithSizes = this.props.skills.map(skill => [skill.name, fontSizeMapper(skill.weight, this.props.width)]);
+      const skillsWithSizes = this.props.skills.map(skill => [skill.name, fontSizeMapper(skill.weight, this.props.width), skill.description]);
 
       infoGrids[this.props.canvas]= WordCloud([canvas], 
         {           
@@ -94,16 +107,26 @@ class SingleSkillCloud extends React.Component {
           otherInfoGrids: infoGrids,
           shape: (theta) => this.props.width
             / Math.sqrt(Math.pow(this.props.width*Math.sin(theta),2)+Math.pow(this.props.height*Math.cos(theta),2)),
-          click: this.clickSkillCallback.bind(this)           
+          click: this.clickSkillCallback.bind(this),
+          hover: this.showHover.bind(this)
         });   
     }
   }
 
   render() {
     return(
+      <div>
       <div style={divStyle} >
         <canvas ref={this.props.canvas} width = {this.props.width}  height = {this.props.height}>
         </canvas>
+      </div>
+      {this.state.hover && this.state.hover.text && (
+        <span className = "tooltiptext" style = {{
+          top: this.state.hover.dimension.y + window.innerHeight - this.props.height - this.state.hover.dimension.h - 80, 
+          left: this.state.hover.dimension.x,
+          width: `${Math.sqrt(this.state.hover.text.length*1000)}px`
+        }} >{this.state.hover.text}</span>
+      )}
       </div>
     );
   }

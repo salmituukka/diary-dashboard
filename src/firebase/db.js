@@ -235,5 +235,5 @@ export const postLatestBioSkill = (userId, branchId, skill) =>
 export const postBioSkillEvent = (userId, branchId, skillId, event) => 
   post(db.ref(`bio_skill_events/${userId}/${branchId}/${skillId}`), event);
 export const putLatestBioSkill = (userId, branchId, skillId, skill) => {
-  return put(db.ref(`bio_events/${userId}/${branchId}/${skillId}`), skill);
+  return put(db.ref(`bio_skills/${userId}/${branchId}/${skillId}`), skill);
 };  

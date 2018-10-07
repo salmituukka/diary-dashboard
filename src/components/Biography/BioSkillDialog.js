@@ -17,7 +17,8 @@ class BioSkillDialog extends Component {
       name: '',
       weight: '',
       groups: [],
-      preference: ''
+      preference: '',
+      description: ''
     }; 
     this.converter = new showdown.Converter();
   }
@@ -29,7 +30,7 @@ class BioSkillDialog extends Component {
   };
 
   state2skill = () => {
-    var skill = pick(this.state, ['name']);
+    var skill = pick(this.state, ['name', 'description']);
     skill['groups'] = this.state.groups.split(',').map(group => group.trim());
     skill['weight'] = Math.round(this.state.weight);
     skill['preference'] = Math.round(this.state.preference);
@@ -114,7 +115,19 @@ class BioSkillDialog extends Component {
               rowsMax = {5}              
               required = {true}
               fullWidth
-            />                               
+            />
+            <TextField
+              value={this.state.description}
+              onChange={this.handleChange('description')}
+              id = "skill_description"
+              label = "Description of the skill"
+              type = "text"
+              multiline = {true}
+              rows = {1}
+              rowsMax = {10}              
+              required = {true}
+              fullWidth
+            />                                         
           </DialogContent>
           <DialogActions>
             {this.props.deleteCallback &&
