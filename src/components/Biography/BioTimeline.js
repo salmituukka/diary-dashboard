@@ -78,9 +78,10 @@ class BioTimeline extends Component {
         group: groupNames.indexOf(event.group),
         subgroup: event.subgroup ?subgroupNames.indexOf(event.subgroup): undefined,
         type: !!event.end ? 'range': 'point',
-        title: event.title,
+        title: event.title
       }
     }));  
+
     return (
       <div>
         <Timeline  

@@ -80,6 +80,38 @@ class BioEventDialog extends Component {
             <DialogContentText>
               {this.props.dialogText}
             </DialogContentText>
+            {this.state.descriptionEditMode && (
+              <div>
+                <TextField
+                  value={this.state.description}
+                  onChange={this.handleChange('description')}
+                  fullWidth
+                  margin = "dense"
+                  id = "event_description"
+                  label = "Long description"
+                  type = "text"
+                  required = {false}
+                  multiline = {true}
+                  rows = {5}
+                  rowsMax = {15}              
+                />
+                <IconButton aria-label="Preview" onClick={() => this.setState({descriptionEditMode: false})}>                  
+                  <PreviewIcon fontSize="small" />
+                </IconButton>
+              </div>
+            )} 
+            {!this.state.descriptionEditMode && (
+              <div>
+                <Paper>
+                  <article>
+                    {renderHTML(githubTemplate(this.converter.makeHtml(this.state.description)))}
+                  </article>
+                  <IconButton aria-label="Edit" onClick={() => this.setState({descriptionEditMode: true})}>                    
+                    <EditIcon fontSize="small" />
+                  </IconButton>
+                  </Paper>
+              </div>
+            )}            
             <TextField
               value={this.state.name}
               onChange={this.handleChange('name')}
@@ -147,39 +179,7 @@ class BioEventDialog extends Component {
               label = "Logo URL"
               type = "text"
               required = {false}
-            />
-            {this.state.descriptionEditMode && (
-              <div>
-                <TextField
-                  value={this.state.description}
-                  onChange={this.handleChange('description')}
-                  fullWidth
-                  margin = "dense"
-                  id = "event_description"
-                  label = "Long description"
-                  type = "text"
-                  required = {false}
-                  multiline = {true}
-                  rows = {5}
-                  rowsMax = {15}              
-                />
-                <IconButton aria-label="Preview" onClick={() => this.setState({descriptionEditMode: false})}>                  
-                  <PreviewIcon fontSize="small" />
-                </IconButton>
-              </div>
-            )} 
-            {!this.state.descriptionEditMode && (
-              <div>
-                <Paper>
-                  <article>
-                    {renderHTML(githubTemplate(this.converter.makeHtml(this.state.description)))}
-                  </article>
-                  <IconButton aria-label="Edit" onClick={() => this.setState({descriptionEditMode: true})}>                    
-                    <EditIcon fontSize="small" />
-                  </IconButton>
-                  </Paper>
-              </div>
-            )}                       
+            />       
           </DialogContent>
           <DialogActions>
             {this.props.deleteCallback &&
