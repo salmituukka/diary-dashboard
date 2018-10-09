@@ -2,6 +2,7 @@ import React from 'react';
 
 import WordCloud from '../../helpers/wordcloud2';
 import BioSkillDialog from './BioSkillDialog';
+import BioImageDialog from './BioImageDialog';
 import flatten from 'lodash/flatten';
 import map from 'lodash/map';
 import toPairs from 'lodash/toPairs';
@@ -10,11 +11,12 @@ import FormLabel from '@material-ui/core/FormLabel';
 import FormGroup from '@material-ui/core/FormGroup';
 import FormControlLabel from '@material-ui/core/FormControlLabel';
 import Checkbox from '@material-ui/core/Checkbox';
+import ReactTooltip from 'react-tooltip'
 
 const fontValues = [4,10,16,22,28] 
 const fontSizeMapper = (weight, width) => fontValues[weight-1] * width  / 1024;
 
-const centerImage = require('../../images/heart.png')
+const defaultImage = require('../../images/heart.png')
 
 var infoGrids = {};
 
@@ -29,7 +31,8 @@ const divCenter = (width, height, offset) => {
   return {
     position: 'absolute',
     bottom: `${height/2-offset}px`,
-    left: `${width/2-offset}px`
+    left: `${width/2-offset}px`,
+    zIndex:1
   };
 };
 
@@ -62,7 +65,7 @@ class SingleSkillCloud extends React.Component {
     if (!!item) {
       const hover = {text: item[2], dimension: dimension};
       this.setState({hover});
-    } else if (!!this.state.hover) {
+    }  else if (!!this.state.hover) {
       this.setState({hover: undefined});
     }
   }
@@ -114,17 +117,25 @@ class SingleSkillCloud extends React.Component {
   }
 
   render() {
+    var tooltipPos = 0;
+    var tooltipWidth = 0;
+    if (this.state.hover && this.state.hover.text) {
+      tooltipWidth = Math.sqrt(this.state.hover.text.length*1000);
+      tooltipPos = (tooltipWidth > this.props.width - (this.state.hover.dimension.x+ this.state.hover.dimension.w+ 5)) 
+      ? this.state.hover.dimension.x - tooltipWidth - 5
+      : this.state.hover.dimension.x+ this.state.hover.dimension.w + 5
+    }
     return(
       <div>
-      <div style={divStyle} >
+      <div style={divStyle}>
         <canvas ref={this.props.canvas} width = {this.props.width}  height = {this.props.height}>
         </canvas>
       </div>
       {this.state.hover && this.state.hover.text && (
-        <span className = "tooltiptext" style = {{
-          top: this.state.hover.dimension.y + window.innerHeight - this.props.height - this.state.hover.dimension.h - 80, 
-          left: this.state.hover.dimension.x,
-          width: `${Math.sqrt(this.state.hover.text.length*1000)}px`
+        <span className = "tooltiptext" style = {{          
+          bottom: -this.state.hover.dimension.y + this.props.height - this.state.hover.dimension.h, 
+          left: tooltipPos,
+          width: `${tooltipWidth}px`          
         }} >{this.state.hover.text}</span>
       )}
       </div>
@@ -132,10 +143,32 @@ class SingleSkillCloud extends React.Component {
   }
 }
 
+class CentreImage extends React.Component { 
+  render() {
+    return (
+    <div style={divCenter(this.props.width, this.props.height, this.props.middleCircleRadius)}>          
+      <a  data-for='image' data-html={true} data-tip={this.props.image && this.props.image.text ? `<p>${this.props.image.text}</p>`: ''}>
+        <img 
+          src={!!this.props.image ? this.props.image.image : defaultImage}
+          onClick={this.props.onClick}
+          alt = {''} 
+          width = {this.props.middleCircleRadius*2} 
+          height = {this.props.middleCircleRadius*2}
+          style = {!!this.props.image ? {clipPath:`circle(${this.props.middleCircleRadius}px at center)`} : {}}
+        />
+      </a>
+      {this.props.image && this.props.image.text &&
+        <ReactTooltip id='image' place="top" type="success" effect="float" multiline={true} wrapper = 'span'/>
+      }
+    </div>
+    );
+  }
+}
+
 class SkillCloud extends React.Component {
   constructor(props) {
     super(props);
-    this.state = { width: 0, height: 0, groups:{}, selectedSkill: undefined };
+    this.state = { width: 0, height: 0, groups:{}, selectedSkill: undefined, imageDialogOpen: false };
     this.updateWindowDimensions = this.updateWindowDimensions.bind(this);
   }
   componentDidMount() {
@@ -158,10 +191,14 @@ class SkillCloud extends React.Component {
     this.setState({groups});
   }
 
-  openSkillDialog(word, group) {
+  openSkillDialog(word) {
     const selectedSkill = this.props.skills.map(skill => skill.name).indexOf(word);
     this.setState({selectedSkill})
   }
+
+  openImageDialog() {
+    this.setState({imageDialogOpen: true})
+  }  
 
   skillDialogCancelCallback() {
     this.setState({selectedSkill: undefined})
@@ -176,8 +213,22 @@ class SkillCloud extends React.Component {
   skillDialogDeleteCallback(skill) {
     const selectedSkill = this.state.selectedSkill;
     this.setState({selectedSkill: undefined});
-    return this.props.deleteSkillCallback(selectedSkill, skill);
+    return this.props.deleteSkillCallback(selectedSkill);
   } 
+
+  imageCancelCallback() {
+    this.setState({imageDialogOpen: false})
+  }  
+
+  imageEditCallback(image) {
+    this.setState({imageDialogOpen: false});
+    return this.props.editImageCallback(image);
+  } 
+
+  imageDeleteCallback() {
+    this.setState({imageDialogOpen: false});
+    return this.props.deleteImageCallback();
+  }   
 
   render() {
     const groupSet =  new Set( flatten(this.props.skills.map(skill=>skill.groups)));
@@ -190,7 +241,7 @@ class SkillCloud extends React.Component {
     const preferenceGroup2TextLengthSum = preferenceGroup2Skills.map(skill=>fontSizeMapper(skill.weight, this.state.width)*skill.name.length).reduce((a, b) => a + b, 0);
     const preferenceGroup3TextLengthSum = preferenceGroup3Skills.map(skill=>fontSizeMapper(skill.weight, this.state.width)*skill.name.length).reduce((a, b) => a + b, 0);
     const totalTextLengthSum = preferenceGroup1TextLengthSum + preferenceGroup2TextLengthSum + preferenceGroup3TextLengthSum;
-    const middleCircleRadius = 100;
+    const middleCircleRadius = Math.min(this.state.width/10, this.state.height/10, 50);
     const middleCircleArea =  Math.PI * middleCircleRadius * middleCircleRadius;
     const totalArea = Math.PI * this.state.width * this.state.height - middleCircleArea;
     const areaGroup1 = totalArea * preferenceGroup1TextLengthSum / Math.max(1, totalTextLengthSum);
@@ -224,12 +275,16 @@ class SkillCloud extends React.Component {
           width = {this.state.width} 
           height = {this.state.height} 
           relSize = {group1RelSize} 
-          absoluteInnerSize = {middleCircleRadius}
+          absoluteInnerSize = {middleCircleRadius*2}
           yOffset = {this.props.yOffset}
           canvas = "1"/>
-        <div style={divCenter(this.state.width, this.state.height, middleCircleRadius/2)} >          
-          <img src={centerImage} alt = {''} width = {middleCircleRadius} height = {middleCircleRadius}/>
-        </div>
+        <CentreImage 
+          image = {this.props.image} 
+          height = {this.state.height} 
+          width = {this.state.width} 
+          middleCircleRadius = {middleCircleRadius}
+          onClick = {this.openImageDialog.bind(this)}
+        />
         <div style={checkbox(this.props.yOffset * this.state.height / ( 1- this.props.yOffset))}>
           <FormLabel component="legend">Skill groups</FormLabel>
           <FormGroup>
@@ -244,6 +299,14 @@ class SkillCloud extends React.Component {
             ))}
           </FormGroup>
         </div>
+        {!!this.state.imageDialogOpen && (
+          <BioImageDialog  
+            image = {this.props.image}
+            deleteCallback = {this.imageDeleteCallback.bind(this)}
+            cancelCallback = {this.imageCancelCallback.bind(this)}
+            submitCallback = {this.imageEditCallback.bind(this)}            
+          />
+        )}
         {!!this.state.selectedSkill && (
           <BioSkillDialog  
             skill = {this.props.skills[this.state.selectedSkill]}
@@ -251,7 +314,14 @@ class SkillCloud extends React.Component {
             cancelCallback = {this.skillDialogCancelCallback.bind(this)}
             submitCallback = {this.skillDialogEditCallback.bind(this)}
           />
-        )}        
+        )}
+        {!!this.state.showImageHover && this.props.image && this.props.image.text && (
+        <span className = "tooltiptext" style = {{
+          top: this.state.hover.dimension.y + window.innerHeight - this.props.height - this.state.hover.dimension.h - 80, 
+          left: this.state.hover.dimension.x,
+          width: `${Math.sqrt(this.state.hover.text.length*1000)}px`
+        }} >{this.props.image.text}</span>
+      )}                     
       </div>
     );
   }  

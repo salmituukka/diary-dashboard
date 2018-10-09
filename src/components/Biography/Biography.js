@@ -22,12 +22,19 @@ class Biography extends Component {
       if (skills != null) {
         this.setState({skills});
       }
-    }.bind(this));    
+    }.bind(this));
+    this.bioImageListener = db.getBioImage(this.props.userId, this.props.branchId, function(dataSnapshot) {
+      const image = dataSnapshot.val();
+      if (image != null) {
+        this.setState({image});
+      }
+    }.bind(this));     
   }
 
   componentWillUnmount() {
     this.bioEventListener.off();
     this.bioSkillsListener.off();
+    this.bioImageListener.off();
   }
 
   constructor(props) {
@@ -36,6 +43,7 @@ class Biography extends Component {
     this.state = {      
       events: [],
       skills: [],
+      image: undefined,
       error: []
     };
   }
@@ -119,7 +127,23 @@ class Biography extends Component {
       const error = {'title': 'Could not delete skill', 'description': err.message || 'Could not delete skill'};
       this.setState({error})
     });
-  }    
+  }   
+
+  editImageCallback(image) {   
+    return db.putBioImage(this.props.userId, this.props.branchId, image).catch(err => {
+      const error = {'title': 'Could not update image', 'description': err.message || 'Could not update image'};
+      this.setState({error})
+    });
+  }   
+  
+  deleteImageCallback() {   
+    return db.deleteBioImage(this.props.userId, this.props.branchId).catch(err => {
+      const error = {'title': 'Could not delete image', 'description': err.message || 'Could not delete image'};
+      this.setState({error});
+    }).then(() => {
+      this.setState({image: undefined});
+    });
+  } 
 
   closeErrorDialog() {  
     this.setState({error: []})
@@ -138,8 +162,11 @@ class Biography extends Component {
         <div className = "column">
           <SkillCloud 
             skills = {Object.values(this.state.skills)}
+            image = {this.state.image}
             deleteSkillCallback = {this.deleteSkillCallback.bind(this)}
             editSkillCallback = {this.editSkillCallback.bind(this)}
+            deleteImageCallback = {this.deleteImageCallback.bind(this)}
+            editImageCallback = {this.editImageCallback.bind(this)}            
             yOffset={0.3}/>
         </div>
         <AddBioDialog 

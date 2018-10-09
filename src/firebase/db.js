@@ -77,6 +77,12 @@ export const getLatestBioSkills = (userId, branchId, callback, errorCallback) =>
   return ref;
 };
 
+export const getBioImage = (userId, branchId, callback, errorCallback) => {
+  const ref = db.ref(`bio_images/${userId}/${branchId}`);
+  ref.on("value", callback, errorCallback);
+  return ref;
+};
+
 
 const put = (dbRef, data) => {
   return new Promise(function(resolve, reject) {
@@ -186,6 +192,9 @@ export const deleteBioEventEvents = (userId, branchId) => {
 export const deleteBioSkillEvents = (userId, branchId) => {
   return remove(db.ref(`bio_skill_events/${userId}/${branchId}`));
 };
+export const deleteBioImage = (userId, branchId) => {
+  return remove(db.ref(`bio_images/${userId}/${branchId}`));
+};
 
 export const putPrivacySettings = (userId, branchId, privacySettings) => {
   return put(db.ref(`privacy_settings/${userId}/${branchId}`), privacySettings);
@@ -219,7 +228,8 @@ export const deleteBranch = (userId, branchId) =>
     deleteLatestBioSkills(userId, branchId),
     deleteLatestBioEvents(userId, branchId),
     deleteBioSkillEvents(userId, branchId),
-    deleteBioEventEvents(userId, branchId)    
+    deleteBioEventEvents(userId, branchId),
+    deleteBioImage(userId, branchId)    
   ]).then(() => 
     remove(db.ref(`branches/${userId}, ${branchId}`)))
 
@@ -236,4 +246,7 @@ export const postBioSkillEvent = (userId, branchId, skillId, event) =>
   post(db.ref(`bio_skill_events/${userId}/${branchId}/${skillId}`), event);
 export const putLatestBioSkill = (userId, branchId, skillId, skill) => {
   return put(db.ref(`bio_skills/${userId}/${branchId}/${skillId}`), skill);
-};  
+};
+export const putBioImage = (userId, branchId, image) => {
+  return put(db.ref(`bio_images/${userId}/${branchId}`), image);
+}; 
