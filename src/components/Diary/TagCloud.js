@@ -12,11 +12,9 @@ class TagCloud extends Component {
     
     return (
       <div>
-        <article align="center">
-          <header>
-            <h1>{this.props.title}</h1>
-          </header>
-        </article>
+        <p align="center">
+          <h1>{this.props.title}</h1>
+        </p>
         <WordCloud
           data={data}
           fontSizeMapper={fontSizeMapper}

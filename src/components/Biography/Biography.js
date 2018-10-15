@@ -8,12 +8,23 @@ import {uploadBio} from "../../helpers/uploadHelper";
 import withAuthorization from '../withAuthorization';
 import AlertDialog from '../AlertDialog';
 import moment from 'moment';
+import keyBy from 'lodash/keyBy';
+import mapValues from 'lodash/mapValues';
 
 class Biography extends Component {
   componentDidMount() {
     this.bioEventListener = db.getLatestBioEvents(this.props.userId, this.props.branchId, function(dataSnapshot) {
-      const events = dataSnapshot.val();
-      if (events != null) {
+      const unorderedEvents = dataSnapshot.val();
+      if (unorderedEvents != null) {
+        // Create items array
+        const keyValPair = Object.keys(unorderedEvents).map(function(key) {
+          return [key, unorderedEvents[key]];
+        });
+        const sortEvents = (ev1,ev2) => {
+          return !!ev1[1].subgroup && !!ev2[1].subgroup ? ev1[1].start - ev2[1].start + ev1[1].title > ev2[1].title
+          :!!ev1[1].subgroup ? 1: !!ev2[1].subgroup ? -1: ev1[1].start - ev2[1].start + ev1[1].title > ev2[1].title;
+        }      
+        const events = mapValues(keyBy(keyValPair.sort(sortEvents), item=> item[0]), (item => item[1]));
         this.setState({events});
       }
     }.bind(this));
@@ -28,7 +39,7 @@ class Biography extends Component {
       if (image != null) {
         this.setState({image});
       }
-    }.bind(this));     
+    }.bind(this));
   }
 
   componentWillUnmount() {
@@ -150,25 +161,33 @@ class Biography extends Component {
   }   
   
   render() {
+    const skills = Object.values(this.state.skills);
+    const events = Object.values(this.state.events);
+    const timelineHeight = skills.length > 0 &&  events.length > 0 
+      ? 0.3 :skills.length > 0 ? 0: 1
     return (
       <div>
-        <div style = {{marginLeft:'75px'}}>
-          <BioTimeline 
-            events = {Object.values(this.state.events)} 
-            editEventCallback = {this.editEventCallback.bind(this)} 
-            deleteEventCallback = {this.deleteEventCallback.bind(this)} 
-            heightRatio = {0.3}/>
-        </div>        
-        <div className = "column">
-          <SkillCloud 
-            skills = {Object.values(this.state.skills)}
-            image = {this.state.image}
-            deleteSkillCallback = {this.deleteSkillCallback.bind(this)}
-            editSkillCallback = {this.editSkillCallback.bind(this)}
-            deleteImageCallback = {this.deleteImageCallback.bind(this)}
-            editImageCallback = {this.editImageCallback.bind(this)}            
-            yOffset={0.3}/>
-        </div>
+        {timelineHeight > 0 && (
+          <div style = {{marginLeft:'45px'}}>
+            <BioTimeline
+              events = {events} 
+              editEventCallback = {this.editEventCallback.bind(this)} 
+              deleteEventCallback = {this.deleteEventCallback.bind(this)} 
+              heightRatio = {timelineHeight}/>
+          </div>
+        )}
+        {timelineHeight < 1 && (
+          <div className = "column">
+            <SkillCloud 
+              skills = {skills}
+              image = {this.state.image}
+              deleteSkillCallback = {this.deleteSkillCallback.bind(this)}
+              editSkillCallback = {this.editSkillCallback.bind(this)}
+              deleteImageCallback = {this.deleteImageCallback.bind(this)}
+              editImageCallback = {this.editImageCallback.bind(this)}            
+              yOffset={timelineHeight}/>
+          </div>
+        )}
         <AddBioDialog 
           addEventCallback = {this.addEventCallback.bind(this)}
           addSkillCallback = {this.addEventCallback.bind(this)}

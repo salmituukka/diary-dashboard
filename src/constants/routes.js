@@ -4,6 +4,6 @@ export const DIARY = '/diary';
 export const HOME = BRANCHES;
 export const MISSION = '/mission';
 export const PLAN = '/plan';
-export const PRINCIPLES = '/principles';
+export const DYNAMICS = '/dynamics';
 export const BIO = '/bio';
 export const SETTINGS = '/settings';

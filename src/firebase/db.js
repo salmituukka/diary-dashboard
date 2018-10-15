@@ -35,14 +35,14 @@ export const getPlans = (userId, branchId, callback) => {
   return ref;
 };
 
-export const getPrincipleEvents = (userId, branchId, callback) => {
-  const ref = db.ref(`principle_events/${userId}/${branchId}`).orderByChild("date");
+export const getDynamicsEvents = (userId, branchId, callback) => {
+  const ref = db.ref(`dynamics_events/${userId}/${branchId}`).orderByChild("date");
   ref.on("value", callback);
   return ref;
 };
 
-export const getLatestPrinciples = (userId, branchId, callback) => {
-  const ref = db.ref(`principles/${userId}/${branchId}`);
+export const getLatestDynamics = (userId, branchId, callback) => {
+  const ref = db.ref(`dynamics/${userId}/${branchId}`);
   ref.on("value", callback);
   return ref;
 };
@@ -155,24 +155,24 @@ export const deletePlans = (userId, branchId) => {
   return remove(db.ref(`plans/${userId}/${branchId}`));
 };
 
-export const postPrincipleEvent = (userId, branchId, id, principle) => {
-  return post(db.ref(`principle_events/${userId}/${branchId}/${id}`), principle);
+export const postDynamicsEvent = (userId, branchId, id, dynamics) => {
+  return post(db.ref(`dynamics_events/${userId}/${branchId}/${id}`), dynamics);
 };
-export const deletePrincipleEvents = (userId, branchId) => {
-  return remove(db.ref(`principle_events/${userId}/${branchId}`));
+export const deleteDynamicsEvents = (userId, branchId) => {
+  return remove(db.ref(`dynamics_events/${userId}/${branchId}`));
 };
 
-export const postLatestPrinciple = (userId, branchId, principle) => {
-  return post(db.ref(`principles/${userId}/${branchId}`), principle);
+export const postLatestDynamics = (userId, branchId, dynamics) => {
+  return post(db.ref(`dynamics/${userId}/${branchId}`), dynamics);
 };
-export const putLatestPrinciple = (userId, branchId, id, principle) => {
-  return put(db.ref(`principles/${userId}/${branchId}/${id}`), principle);
+export const putLatestDynamics = (userId, branchId, id, dynamics) => {
+  return put(db.ref(`dynamics/${userId}/${branchId}/${id}`), dynamics);
 };
-export const deleteLatestPrinciple = (userId, branchId, id) => {
-  return remove(db.ref(`principles/${userId}/${branchId}/${id}`));
+export const deleteLatestDynamics = (userId, branchId, id) => {
+  return remove(db.ref(`dynamics/${userId}/${branchId}/${id}`));
 };
-export const deleteLatestPrinciples = (userId, branchId) => {
-  return remove(db.ref(`principles/${userId}/${branchId}`));
+export const deleteLatestDynamicss = (userId, branchId) => {
+  return remove(db.ref(`dynamics/${userId}/${branchId}`));
 };
 export const deleteLatestBioSkill = (userId, branchId, id) => {
   return remove(db.ref(`bio_skills/${userId}/${branchId}/${id}`));
@@ -221,8 +221,8 @@ export const deleteBranch = (userId, branchId) =>
     deleteNotes(userId, branchId),
     deleteMissions(userId, branchId),
     deletePlans(userId, branchId),
-    deletePrincipleEvents(userId, branchId),
-    deleteLatestPrinciples(userId, branchId),
+    deleteDynamicsEvents(userId, branchId),
+    deleteLatestDynamicss(userId, branchId),
     deletePrivacySettings(userId, branchId),
     deletePublicBranch(userId, branchId),
     deleteLatestBioSkills(userId, branchId),

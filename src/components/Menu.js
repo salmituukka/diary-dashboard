@@ -2,7 +2,6 @@ import React, { Component } from 'react';
 import BurgerMenu from 'react-burger-menu';
 import './Menu.css'
 
-
 class MenuWrap extends Component {
   constructor (props) {
     super(props);

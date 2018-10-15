@@ -77,7 +77,7 @@ class SignInForm extends Component {
             <FormGroup >
               <TextField
                 onChange={event => this.setState(byPropKey('usernameOrEmail', event.target.value))}
-                id="usernameOrEmail"
+                id="usernameOrEmailSignin"
                 type="text"
                 placeholder="Email or username"
               />
@@ -85,7 +85,7 @@ class SignInForm extends Component {
               <TextField
                 inputRef={text => this.password = text}
                 onChange={event => this.setState(byPropKey('password', event.target.value))}
-                id="password"
+                id="passwordSignin"
                 type="password"
                 placeholder="password"
               />          

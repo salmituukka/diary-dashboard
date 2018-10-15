@@ -30,7 +30,7 @@ class Navigation extends Component {
           <a id="Mision" href={pathWithParam(routes.MISSION, pathParam1, this.props.pathParam2)}>Mission</a>
         }
         {(branchIds.length > 0 || this.props.pathParam2) && 
-          <a id="Principles" href={pathWithParam(routes.PRINCIPLES, pathParam1, this.props.pathParam2)}>Principles</a>
+          <a id="Dynamics" href={pathWithParam(routes.DYNAMICS, pathParam1, this.props.pathParam2)}>Dynamics</a>
         }
         {(branchIds.length > 0 || this.props.pathParam2) && 
           <a id="Plan" href={pathWithParam(routes.PLAN, pathParam1, this.props.pathParam2)}>Plan</a>

@@ -18,13 +18,14 @@ class PrivacySettings extends React.Component {
 
     this.state = {
       mission: false,
-      principles: false,
+      dynamics: false,
       plan: false,
       diary_meta_tags: false,
       diary_meta_ratings: false,
       bio_events: false,
       bio_skills: false,
       diary_bodies: false,
+      name: '',
       error: []
     };
   }
@@ -33,10 +34,10 @@ class PrivacySettings extends React.Component {
     db.getPrivacySettings(this.props.userId, this.props.branchId, function(dataSnapshot) {
       const privacySettings = dataSnapshot.val();
       if (privacySettings != null) {
-        this.name = privacySettings.name;
         this.setState({
+          name: privacySettings.name,
           mission: privacySettings.mission || false,
-          principles: privacySettings.principles || false,
+          dynamics: privacySettings.dynamics || false,
           plan: privacySettings.plan || false,
           diary_meta_tags: privacySettings.diary_meta_tags || false,
           diary_meta_ratings: privacySettings.diary_meta_ratings || false,
@@ -56,11 +57,11 @@ class PrivacySettings extends React.Component {
 
   handleSubmit = () => {
     return db.putPrivacySettings(this.props.userId, this.props.branchId, pick(this.state, [
-      'mission', 'principles', 'plan', 'diary_meta_tags','diary_meta_ratings', 'bio_events','bio_skills', 'diary_bodies'])
+      'name', 'mission', 'dynamics', 'plan', 'diary_meta_tags','diary_meta_ratings', 'bio_events','bio_skills', 'diary_bodies'])
   ).then(
       () => 
       this.isAnyFieldPublic() ?
-          db.putPublicBranch(this.props.branchId, {userId: this.props.userId, name: this.name.value})
+          db.putPublicBranch(this.props.branchId, {userId: this.props.userId, name: this.state.name})
           : db.deletePublicBranch(this.props.branchId)
     ).catch(err => {
       const error = {'title': `Could not edit privacy settings`, 'description': err.message || 'Could not edit privacy settings'};
@@ -96,19 +97,19 @@ class PrivacySettings extends React.Component {
               {this.privatePublicSwitch('bio_events')}
               {this.privatePublicSwitch('bio_skills')}
               {this.privatePublicSwitch('mission')}
-              {this.privatePublicSwitch('principles')}
+              {this.privatePublicSwitch('dynamics')}
               {this.privatePublicSwitch('plan')}
               {this.privatePublicSwitch('diary_meta_tags')}
               {this.privatePublicSwitch('diary_meta_ratings')}
               {this.privatePublicSwitch('diary_bodies')}
             
               {this.isAnyFieldPublic() && <TextField
-                inputRef={text => this.name = text}
+                onChange={(event) => this.setState({name: event.target.value})}
                 style = {{width: 300}}
                 label="User name so that others can finds you"
                 id="name"
                 type = "text"
-                defaultValue={this.name || this.props.userName} 
+                value={this.state.name || this.props.userName} 
               />}
               <br/>
               <Button variant="contained" color="primary" onClick={this.handleSubmit}>

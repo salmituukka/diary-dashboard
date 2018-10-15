@@ -32,10 +32,10 @@ class Diary extends Component {
         this.setState({metaRatings: Object.values(values)});
       }
     }.bind(this));    
-    this.principleListener = db.getLatestPrinciples(this.props.userId, this.props.branchId, function(dataSnapshot) {
-      const principles = dataSnapshot.val();
-      if (principles != null) {
-        this.setState({principles});
+    this.dynamicsListener = db.getLatestDynamics(this.props.userId, this.props.branchId, function(dataSnapshot) {
+      const dynamicsListener = dataSnapshot.val();
+      if (dynamicsListener != null) {
+        this.setState({dynamicsListener});
       }
     }.bind(this));
     this.planListener = db.getPlans(this.props.userId, this.props.branchId, function(dataSnapshot) {
@@ -51,7 +51,7 @@ class Diary extends Component {
   componentWillUnmount() {
     this.metaTagListener.off();
     this.metaRatingListener.off();
-    this.principleListener.off();
+    this.dynamicsListener.off();
     this.planListener.off();
     window.removeEventListener('resize', this.updateWindowDimensions);
   }
@@ -62,7 +62,7 @@ class Diary extends Component {
     this.state = {      
       metaTags: [],
       metaRatings: [],
-      principles: [],
+      dynamics: [],
       plans: [],
       width: 0, 
       height: 0,
@@ -99,14 +99,14 @@ class Diary extends Component {
   }   
 
   render() {
-    const { metaTags, metaRatings, principles, plans } = this.state;
-    const principlesByKey = keyBy(principles, o => o.diary_reference);
+    const { metaTags, metaRatings, dynamics, plans } = this.state;
+    const dynamicsByKey = keyBy(dynamics, o => o.diary_reference);
     const serieKeys = metaRatings ? uniq(flatten(metaRatings
       .map(meta => Object.keys(meta))))
       .filter(key => !NOT_TIME_SERIES_TAGS.includes(key)): [];
     const timelineSeries = serieKeys.map((serieKey, index) => {
       return {
-        title: !!principlesByKey[serieKey] ? principlesByKey[serieKey].principle: serieKey,
+        title: !!dynamicsByKey[serieKey] ? dynamicsByKey[serieKey].name: serieKey,
         comments: metaRatings.map(meta => 
           meta.comments && meta.comments[serieKey] ? meta.comments[serieKey] : null
         ),
@@ -127,7 +127,7 @@ class Diary extends Component {
     return (
       <div>    
         <div className = "row">
-          <div className = "column">
+          <div className = "column1">
             <TagCloud 
               tags = {
                 // Filter tags if timeline is zoomed
@@ -137,24 +137,24 @@ class Diary extends Component {
                 ).map(meta => meta.tags))
               }
               height = {0.45 * this.state.height}
-              width = {0.5 * this.state.width} 
+              width = {0.7 * this.state.width} 
               title = 'What I have learnt'
             />
           </div>
-          <div className = "column">
-            <AddFileButton 
-              label="AddDay" 
-              id ="add-day" 
-              multipleInputs 
-              submitCallback = {this.diaryFilesAdded.bind(this)}
-            />
-            <div>
-            <article align="center">
-              <header>
-                <h1>Have I followed the latest plan</h1>
-              </header>
-            </article>
-            <Gauge value={ratioOfPlanningTagsInLatestPlan} width={0.4 * this.state.width} height={0.45 * this.state.height} label = {''}/>
+          <div className = "column2">
+            <div style={{position: 'absolute', right: '0px', top: '0px'}}>
+              <AddFileButton 
+                label="AddDay" 
+                id ="add-day" 
+                multipleInputs 
+                submitCallback = {this.diaryFilesAdded.bind(this)}
+              />
+              </div>
+              <div style = {{verticalAlign: 'top', marginRight: '30px', marginTop: '0px'}}>
+                <p align="center">
+                  <h1>Fit to plan</h1>
+                </p>            
+                <Gauge value={ratioOfPlanningTagsInLatestPlan} width={0.3 * this.state.width} height={(this.state.height > 300 ? 0.35: 0.45)* this.state.height} label = ''/>
             </div>
           </div>
         </div>

@@ -55,7 +55,13 @@ class AddBioDialog extends React.Component {
   render() {
     return (
       <div>
-      <AddButton onClick = {this.handleOpen.bind(this)}/> 
+        <div style = {{
+          position: 'absolute',
+          right: 0,
+          bottom: `0px`
+        }}>
+        <AddButton onClick = {this.handleOpen.bind(this)}/> 
+        </div>
         <Dialog
           open={this.state.showMainDialog}
         >

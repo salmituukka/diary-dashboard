@@ -40,7 +40,7 @@ const checkbox = (height) => {
   return {
     position: 'absolute',
     top: `${height}px`,
-    right: `0px`
+    left: `0px`
   };
 };
 
@@ -127,17 +127,17 @@ class SingleSkillCloud extends React.Component {
     }
     return(
       <div>
-      <div style={divStyle}>
-        <canvas ref={this.props.canvas} width = {this.props.width}  height = {this.props.height}>
-        </canvas>
-      </div>
-      {this.state.hover && this.state.hover.text && (
-        <span className = "tooltiptext" style = {{          
-          bottom: -this.state.hover.dimension.y + this.props.height - this.state.hover.dimension.h, 
-          left: tooltipPos,
-          width: `${tooltipWidth}px`          
-        }} >{this.state.hover.text}</span>
-      )}
+        <div style={divStyle}>
+          <canvas ref={this.props.canvas} width = {this.props.width}  height = {this.props.height}>
+          </canvas>
+        </div>
+        {this.state.hover && this.state.hover.text && (
+          <span className = "tooltiptext" style = {{          
+            bottom: -this.state.hover.dimension.y + this.props.height - this.state.hover.dimension.h, 
+            left: tooltipPos,
+            width: `${tooltipWidth}px`          
+          }} >{this.state.hover.text}</span>
+        )}
       </div>
     );
   }
@@ -228,7 +228,13 @@ class SkillCloud extends React.Component {
   imageDeleteCallback() {
     this.setState({imageDialogOpen: false});
     return this.props.deleteImageCallback();
-  }   
+  }
+
+  componentDidUpdate(prevProps) {
+    if (!!prevProps && this.props.yOffset !== prevProps.yOffset) {
+      this.updateWindowDimensions(1.0, (1.0-this.props.yOffset));
+    }
+  }  
 
   render() {
     const groupSet =  new Set( flatten(this.props.skills.map(skill=>skill.groups)));
@@ -250,6 +256,8 @@ class SkillCloud extends React.Component {
        Math.sqrt((areaGroup1 + middleCircleArea) / (Math.PI * this.state.width * this.state.height)));
     const group2RelSize = Math.max(0.4, Math.min(0.9, Math.sqrt((areaGroup1 + areaGroup2 + middleCircleArea) / (Math.PI * this.state.width * this.state.height))));
     const group3RelSize = 1.0;
+
+    const suppressMode = this.state.width < 600;
 
     return(
       <div> 
@@ -286,15 +294,15 @@ class SkillCloud extends React.Component {
           onClick = {this.openImageDialog.bind(this)}
         />
         <div style={checkbox(this.props.yOffset * this.state.height / ( 1- this.props.yOffset))}>
-          <FormLabel component="legend">Skill groups</FormLabel>
+          <FormLabel component="legend">{!suppressMode ? 'Skill groups': 'Skills'}</FormLabel>
           <FormGroup>
             {map(groups, group => (
               <FormControlLabel
                 key = {group}
                 control={
-                  <Checkbox style = {{height: 30}} checked={this.state.groups[group] === undefined || this.state.groups[group]} value={group} onChange={(event, checked) => this.handleChange(group, checked)}/>
+                  <Checkbox style = {{height: Math.min(this.state.height/15,50)}} checked={this.state.groups[group] === undefined || this.state.groups[group]} value={group} onChange={(event, checked) => this.handleChange(group, checked)}/>
                 }
-                label={group}
+                label={!suppressMode ? group: ''}
               />
             ))}
           </FormGroup>

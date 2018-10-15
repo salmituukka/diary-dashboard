@@ -11,7 +11,7 @@ import Biography from './components/Biography/Biography';
 import Mission from './components/Mission/Mission';
 import Plan from './components/Plan/Plan';
 import Settings from './components/Settings/Settings';
-import Principles from './components/Principles/Principles';
+import MentalDynamics from './components/Dynamics/MentalDynamics';
 import withAuthentication from './components/withAuthentication';
 
 import * as routes from './constants/routes';
@@ -44,8 +44,8 @@ class App extends Component {
             component={Plan}
           />
           <Route
-            path={`${routes.PRINCIPLES}/:branchId/:userId?`}
-            render={Principles}
+            path={`${routes.DYNAMICS}/:branchId/:userId?`}
+            render={MentalDynamics}
           />
           <Route
             path={`${routes.BIO}/:branchId/:userId?`}
