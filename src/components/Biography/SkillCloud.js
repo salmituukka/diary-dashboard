@@ -149,12 +149,13 @@ class CentreImage extends React.Component {
     <div style={divCenter(this.props.width, this.props.height, this.props.middleCircleRadius)}>          
       <a  data-for='image' data-html={true} data-tip={this.props.image && this.props.image.text ? `<p>${this.props.image.text}</p>`: ''}>
         <img 
+          id = "skillcloud_center_image"
           src={!!this.props.image ? this.props.image.image : defaultImage}
           onClick={this.props.onClick}
           alt = {''} 
           width = {this.props.middleCircleRadius*2} 
           height = {this.props.middleCircleRadius*2}
-          style = {!!this.props.image ? {clipPath:`circle(${this.props.middleCircleRadius}px at center)`} : {}}
+          style = {!!this.props.image ? {clipPath:`circle(${this.props.middleCircleRadius}px at center)`, webkitClipPath:`circle(${this.props.middleCircleRadius}px at center)`} : {}}
         />
       </a>
       {this.props.image && this.props.image.text &&

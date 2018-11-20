@@ -18,7 +18,6 @@ class BioTimeline extends Component {
   
    componentWillUnmount() {
     window.removeEventListener('resize', this.updateWindowDimensions);
-    clearInterval(this.reRenderer);
   }
   
   updateWindowDimensions(widthRatio, heightRatio) {
@@ -26,7 +25,9 @@ class BioTimeline extends Component {
   }
 
   openEventDialog(event) {
-    this.setState({selectedEvent: event.item})
+    if (!!event && !!event.item) {
+      this.setState({selectedEvent: event.item})
+    }
   }
 
   eventDialogCancelCallback() {
@@ -44,10 +45,6 @@ class BioTimeline extends Component {
     this.setState({selectedEvent: undefined});
     return this.props.deleteEventCallback(selectedEvent);
   }   
-
-  rangeChangeHandler(event) {
-    this.setState({start: event.start, end: event.end});
-  }
 
   componentDidUpdate(prevProps) {
     if (!!prevProps && this.props.heightRatio !== prevProps.heightRatio) {
@@ -77,10 +74,10 @@ class BioTimeline extends Component {
       stack: false,
       groupOrder: 'content',
       showMajorLabels: false
-    };    
+    };
 
     const groupNames = uniq(this.props.events.map(event => event.group));
-    const groupHeight = (numSubgroups) => Math.max(5, this.state.height * (60/184) *3 /groupNames.length / numSubgroups -20);
+    const groupHeight = (numSubgroups) => Math.max(5, this.state.height * (60/184) *3 /(groupNames.length * numSubgroups) -20 + (numSubgroups-1)*4);
     const contentWithoutImage = (content) => `<div>${content}<img src=${require('../../images/heart.png')} alt ="" width =0 height="${groupHeight(1)}"></div>`;
     const groups = groupNames.map((group, index) => {
       return {
@@ -98,7 +95,9 @@ class BioTimeline extends Component {
     const overlappingEvents = groupNames.map(group => eventsWithId.filter(event =>event.group === group))
       .map(groupEvents=>groupEvents.filter(event => !!event.end && !!event.subgroup && event.subgroup.length > 0)
         .map(event => groupEvents.filter(other => event.start <= other.start && event.end >= other.start)).filter(events => events.length > 1).map(events => 
-          keyBy(events.map((other, index) => { return {id: other.id, index: index, size: events.length}}),  o=>o.id))
+          keyBy(events.map((other, index) => { 
+            return {id: other.id, index: index, size: events.length}
+          }),  o=>o.id))
       ).map(a=>!!a?a[0]:a);
 
     const items = uniq(this.props.events
@@ -115,21 +114,23 @@ class BioTimeline extends Component {
           group: groupNames.indexOf(event.group),
           subgroup: subgroupIndex,
           //subgroup: event.subgroup ?subgroupNames.indexOf(event.subgroup): undefined,
-          type: !!event.end ? !!event.subgroup ? 'range': 'range': 'point',
+          type: !!event.end ? 'range': 'point',
           title: event.title,
-          style: suppressMode ? 'font-size:8px': 'font-size:14px'
+          style: (!!event.subgroup && !!event.end? 'background-color: rgba(193,201,226,0.6);'	:'') + (suppressMode ? `font-size:${Math.floor(8/size)}px`: `font-size:${Math.floor(14/size)}px`)
         }
       })
-    );  
+    );
+
+    console.info(options);
+    console.info(items);
 
     return (
-      <div>
-        <Timeline  
+      <div>        
+        <Timeline
           groups = {groups}
           items = {items}
           options = {options}
           clickHandler={this.openEventDialog.bind(this)}
-          rangechangedHandler={this.rangeChangeHandler.bind(this)}
         />
         {!!this.state.selectedEvent && (
           <BioEventDialog  

@@ -55,7 +55,8 @@ class Biography extends Component {
       events: [],
       skills: [],
       image: undefined,
-      error: []
+      error: [],
+      timelineHeight: undefined
     };
   }
 
@@ -158,26 +159,34 @@ class Biography extends Component {
 
   closeErrorDialog() {  
     this.setState({error: []})
-  }   
+  }
+
+  setTimelineHeight(timelineHeight) {
+    if (this.state.timelineHeight !== timelineHeight) {  
+      this.setState({timelineHeight})
+    } else {
+      this.setState({timelineHeight: undefined})
+    }
+  }  
   
   render() {
     const skills = Object.values(this.state.skills);
     const events = Object.values(this.state.events);
-    const timelineHeight = skills.length > 0 &&  events.length > 0 
-      ? 0.3 :skills.length > 0 ? 0: 1
+    const timelineHeight = this.state.timelineHeight !== undefined ? this.state.timelineHeight: (skills.length > 0 &&  events.length > 0 
+      ? 0.3 :skills.length > 0 ? 0: 1);
     return (
       <div>
         {timelineHeight > 0 && (
-          <div style = {{marginLeft:'45px'}}>
+          <div style = {{marginLeft:'45px'}} onDoubleClick={() => this.setTimelineHeight(1)}>
             <BioTimeline
               events = {events} 
               editEventCallback = {this.editEventCallback.bind(this)} 
               deleteEventCallback = {this.deleteEventCallback.bind(this)} 
               heightRatio = {timelineHeight}/>
           </div>
-        )}
+        )} 
         {timelineHeight < 1 && (
-          <div className = "column">
+          <div className = "column" onDoubleClick={() => this.setTimelineHeight(0)}>
             <SkillCloud 
               skills = {skills}
               image = {this.state.image}
@@ -190,7 +199,7 @@ class Biography extends Component {
         )}
         <AddBioDialog 
           addEventCallback = {this.addEventCallback.bind(this)}
-          addSkillCallback = {this.addEventCallback.bind(this)}
+          addSkillCallback = {this.addSkillCallback.bind(this)}
           importCallback = {this.importCallback.bind(this)}
         />
         <AlertDialog 

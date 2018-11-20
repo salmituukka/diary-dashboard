@@ -28,6 +28,7 @@ class BioEventDialog extends Component {
       subgroup: '',
       logo: '',
       description: '',
+      descriptionEditMode: true
     }; 
     this.converter = new showdown.Converter();
   }
@@ -63,7 +64,8 @@ class BioEventDialog extends Component {
   componentDidMount() {
     if (!!this.props.event) {
       var stateCopy = {...this.state};
-      Object.keys(this.props.event).forEach(key => stateCopy[key] = this.props.event[key])
+      Object.keys(this.props.event).forEach(key => stateCopy[key] = this.props.event[key]);
+      stateCopy.descriptionEditMode = false;
       this.setState(stateCopy);
     }
   }  
@@ -72,16 +74,20 @@ class BioEventDialog extends Component {
     return (
       <div>
        <Dialog
+          maxWidth = {'lg'}
           open={true}
           aria-labelledby="form-dialog-title"
         >
-          <DialogTitle id="form-dialog-title">{this.props.dialogTitle}</DialogTitle>
+          <DialogTitle id="form-dialog-title">{this.state.name}</DialogTitle>
           <DialogContent>
             <DialogContentText>
               {this.props.dialogText}
             </DialogContentText>
             {this.state.descriptionEditMode && (
               <div>
+                <IconButton aria-label="Preview" onClick={() => this.setState({descriptionEditMode: false})}>                  
+                  <PreviewIcon fontSize="small" />
+                </IconButton>                
                 <TextField
                   value={this.state.description}
                   onChange={this.handleChange('description')}
@@ -95,21 +101,18 @@ class BioEventDialog extends Component {
                   rows = {5}
                   rowsMax = {15}              
                 />
-                <IconButton aria-label="Preview" onClick={() => this.setState({descriptionEditMode: false})}>                  
-                  <PreviewIcon fontSize="small" />
-                </IconButton>
               </div>
             )} 
             {!this.state.descriptionEditMode && (
-              <div>
-                <Paper>
-                  <article>
-                    {renderHTML(githubTemplate(this.converter.makeHtml(this.state.description)))}
-                  </article>
+              <div>                 
+                <Paper>  
                   <IconButton aria-label="Edit" onClick={() => this.setState({descriptionEditMode: true})}>                    
                     <EditIcon fontSize="small" />
-                  </IconButton>
-                  </Paper>
+                  </IconButton>                                   
+                  <article>                  
+                    {renderHTML(githubTemplate(this.converter.makeHtml(this.state.description)))}
+                  </article>
+                </Paper>
               </div>
             )}            
             <TextField

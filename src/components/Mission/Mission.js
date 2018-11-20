@@ -63,7 +63,7 @@ class Mission extends Component {
           id ="add-mission"
           submitCallback = {this.submitCallback.bind(this)}
         /> 
-        <div class="center">
+        <div>
           <article align="center">
             <header>
               <h1>Mission</h1>

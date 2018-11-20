@@ -11,6 +11,10 @@ import FormControlLabel from '@material-ui/core/FormControlLabel';
 import Checkbox from '@material-ui/core/Checkbox';
 import pick from 'lodash/pick';
 import map from 'lodash/map';
+import Switch from '@material-ui/core/Switch';
+
+
+const defaultWeight = 1.0;
 
 class DynamicsDialog extends Component {  
   
@@ -18,10 +22,11 @@ class DynamicsDialog extends Component {
     super(props);
     this.state = {
       name: '',
-      positive_parents: [],
-      negative_parents: [],
+      parents: [],
       comment: '',
-      diary_reference: ''
+      diary_reference: '',
+      target: false,
+      parent_explanation: 1
     }; 
   }
 
@@ -36,7 +41,7 @@ class DynamicsDialog extends Component {
   }
 
   state2Dynamics = () => {
-    var dynamics = pick(this.state, ['name', 'positive_parents', 'negative_parents', 'comment', 'diary_reference']);
+    var dynamics = pick(this.state, ['target', 'name', 'parents', 'comment', 'diary_reference', 'parent_explanation']);
     return dynamics;
   }  
 
@@ -52,22 +57,15 @@ class DynamicsDialog extends Component {
     });
   }; 
 
-  handleCheckedChange = (key, checked, name)=> {
-    var checkedList = this.state[name];
+  handleCheckedChange = (key, checked, weight, comment)=> {
+    var checkedList = this.state.parents;
     if (checked) {
-      if (!!checkedList) {
-        checkedList.push(key)
-      } else {
-        checkedList = [key];
-      }
+      checkedList[key] = {weight, comment}
     } else {
-      var index = checkedList.indexOf(key);
-      if (index !== -1) {
-        checkedList.splice(index, 1); 
-      }
+      delete checkedList[key]
     }
     this.setState({
-      [name]: checkedList,
+      parents: checkedList,
     });
   };    
     
@@ -84,6 +82,8 @@ class DynamicsDialog extends Component {
       <div>
        <Dialog
           open={true}
+          fullWidth = {true}
+          maxWidth='md'
           aria-labelledby="form-dialog-title"
         >
           <DialogTitle id="form-dialog-title">{this.props.dialogTitle}</DialogTitle>
@@ -125,45 +125,72 @@ class DynamicsDialog extends Component {
               fullWidth
             />
             <DialogContentText>
-              Positive parents
+              Parents
             </DialogContentText>            
             <FormGroup >
               {map(this.props.nodes, (node, index) => (
-                <FormControlLabel 
-                  value={`${index}`} 
-                  key={index} 
-                  control={
-                    <Checkbox 
-                      checked={this.state.positive_parents.indexOf(node.key) >= 0} 
-                      onChange={(event, checked) => this.handleCheckedChange(node.key, checked, 'positive_parents')}
-                    />
-                  }
-                  label={node.name} 
-                />
-              ))}
-            </FormGroup>
-            <DialogContentText>
-              Negative parents
-            </DialogContentText>            
-            <FormGroup >
-              {map(this.props.nodes, (node,index) => (
+                <div key={`div_${index}`}>
                   <FormControlLabel 
                     value={`${index}`} 
-                    key={index} 
+                    key={`check_${index}`}
                     control={
                       <Checkbox 
-                        checked={this.state.negative_parents.indexOf(node.key) >= 0} 
-                        onChange={(event, checked) => this.handleCheckedChange(node.key, checked, 'negative_parents')}
+                        checked={Object.keys(this.state.parents).indexOf(node.key) >= 0} 
+                        onChange={(event, checked) => this.handleCheckedChange(node.key, checked, defaultWeight, '')}
                       />
                     }
                     label={node.name} 
                   />
-              ))}
-            </FormGroup>                        
+                  {(Object.keys(this.state.parents).indexOf(node.key) >= 0) && 
+                    <TextField
+                      value={this.state.parents[node.key].weight}
+                      key={`weight_${index}`} 
+                      onChange={(event) => this.handleCheckedChange(node.key, true, event.target.value, this.state.parents[node.key].comment)}
+                      id = "weight"
+                      label = "Weight"
+                      type = "number"
+                      required = {false}
+                    /> 
+                  }
+                  {(Object.keys(this.state.parents).indexOf(node.key) >= 0) && 
+                    <TextField
+                      value={this.state.parents[node.key].comment}
+                      key={`comment_${index}`} 
+                      onChange={(event) => this.handleCheckedChange(node.key, true, this.state.parents[node.key].weight, event.target.value)}
+                      id = "comment"
+                      label = "Comment"
+                      type = "text"
+                      required = {false}
+                    />
+                  }
+                </div>                          
+              ))}             
+            </FormGroup>
+            <TextField
+              value={this.state.parent_explanation}
+              onChange={this.handleChange('parent_explanation')}
+              margin = "dense"
+              id = "parent_explanation"
+              label = "Explanation factory of parents"
+              type = "number"
+              required = {false}
+              fullWidth
+            />             
+            <FormControlLabel
+              control={
+                <Switch
+                  value= {this.state.target ? '': 'True'}
+                  color = "primary"
+                  checked={this.state.target}
+                  onChange={this.handleChange('target')}
+                />
+              }
+              label='Target'
+            />                                
           </DialogContent>
           <DialogActions>
             {this.props.deleteCallback &&
-              <Button onClick={this.props.deleteCallback} color="red">
+              <Button onClick={this.props.deleteCallback} color="secondary">
                 Delete
               </Button>
             }
@@ -171,7 +198,7 @@ class DynamicsDialog extends Component {
               Cancel
             </Button>
             <Button onClick={this.submitCallback} color="primary">
-              Add Principle
+              Add Dynamics Node
             </Button>
           </DialogActions>
         </Dialog>
