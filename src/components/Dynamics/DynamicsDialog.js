@@ -42,6 +42,14 @@ class DynamicsDialog extends Component {
 
   state2Dynamics = () => {
     var dynamics = pick(this.state, ['target', 'name', 'parents', 'comment', 'diary_reference', 'parent_explanation']);
+    Object.keys(dynamics.parents)
+      .filter(key=> (typeof dynamics.parents[key].weight === 'string'))
+      .forEach(key=>{
+        dynamics.parents[key].weight = parseFloat(dynamics.parents[key].weight.replace(',','.'));
+      });
+      if (typeof dynamics.parent_explanation === 'string') {
+        dynamics.parent_explanation = parseFloat(dynamics.parent_explanation.replace(',','.'));
+      }
     return dynamics;
   }  
 

@@ -188,7 +188,7 @@ class MentalDynamics extends Component {
     const pairsSortedByStepsToTarget = toPairs(dynamics).sort((a,b) => stepsToTarget(a[0], maxDepth) - stepsToTarget(b[0], maxDepth));
 
     pairsSortedByStepsToTarget.forEach(a => {
-      if (a.target) {
+      if (a[1].target) {
         estimatedDynamics[a[0]].positive = true;
       } else {
         estimatedDynamics[a[0]].positive = (!!successors[a[0]] 
@@ -223,7 +223,7 @@ class MentalDynamics extends Component {
           borderWidth: idPrinciple[1].target ? 5:1,
           id: idPrinciple[0],
           label: idPrinciple[1].name,
-          title: idPrinciple[1].comment || undefined,
+          title: `${idPrinciple[1].comment} (${parseInt(meanVal*100,10)}%)`,
           shape: 'circle',
           color: {
             background: `rgb(${rgbVals[0]}, ${rgbVals[1]}, ${rgbVals[2]})`,
@@ -267,7 +267,8 @@ class MentalDynamics extends Component {
             arrowStrikethrough: false,
             width: width,
             from: parent, 
-            title: idDynamic[1].parents[parent].description || idDynamic[1].parents[parent].weight/totalWeight,
+            title: !!idDynamic[1].parents[parent].description ? `${idDynamic[1].parents[parent].description} (${(idDynamic[1].parents[parent].weight/totalWeight).toFixed(2)})`
+              : (idDynamic[1].parents[parent].weight/totalWeight).toFixed(2),
             to: idDynamic[0],
             arrows: {to: {enabled: true}},
             //color: `green`

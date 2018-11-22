@@ -33,9 +33,9 @@ class Diary extends Component {
       }
     }.bind(this));    
     this.dynamicsListener = db.getLatestDynamics(this.props.userId, this.props.branchId, function(dataSnapshot) {
-      const dynamicsListener = dataSnapshot.val();
-      if (dynamicsListener != null) {
-        this.setState({dynamicsListener});
+      const dynamics = dataSnapshot.val();
+      if (dynamics != null) {
+        this.setState({dynamics});
       }
     }.bind(this));
     this.planListener = db.getPlans(this.props.userId, this.props.branchId, function(dataSnapshot) {
@@ -102,7 +102,10 @@ class Diary extends Component {
     const { metaTags, metaRatings, dynamics, plans } = this.state;
     const dynamicsByKey = keyBy(dynamics, o => o.diary_reference);
     const serieKeys = metaRatings ? uniq(flatten(metaRatings
+      .filter(meta => !this.state.dates || (
+        meta.date >= this.state.dates[0] && meta.date <= this.state.dates[1]))
       .map(meta => Object.keys(meta))))
+      .filter(key => !dynamics|| !!dynamicsByKey[key])
       .filter(key => !NOT_TIME_SERIES_TAGS.includes(key)): [];
     const timelineSeries = serieKeys.map((serieKey, index) => {
       return {
@@ -151,9 +154,9 @@ class Diary extends Component {
               />
               </div>
               <div style = {{verticalAlign: 'top', marginRight: '30px', marginTop: '0px'}}>
-                <p align="center">
+                <div align="center">
                   <h1>Fit to plan</h1>
-                </p>            
+                </div>            
                 <Gauge value={ratioOfPlanningTagsInLatestPlan} width={0.3 * this.state.width} height={(this.state.height > 300 ? 0.35: 0.45)* this.state.height} label = ''/>
             </div>
           </div>

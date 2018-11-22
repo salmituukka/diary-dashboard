@@ -103,7 +103,7 @@ class BranchDialog extends Component {
           </DialogContent>
           <DialogActions>
             {this.props.deleteCallback &&
-            <Button onClick={this.props.deleteCallback} color="red">
+            <Button onClick={this.props.deleteCallback} color="secondary">
               Delete
             </Button>}
             <Button onClick={this.props.cancelCallback} color="primary">

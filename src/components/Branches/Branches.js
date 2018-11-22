@@ -26,6 +26,7 @@ class Branches extends Component {
 
   addCallback(name, comment, parentNr) {
     const ids = keys(this.props.branches).filter(key=>key !== this.state.modifiedBranch);
+    parentNr = parseInt(parentNr,10);
     const parentId = parentNr === 0 ? 'root': ids[parentNr-1];
     
     this.setState({modifiedBranch: '', branchDialogOpen: false});
@@ -43,6 +44,7 @@ class Branches extends Component {
 
   modifyCallback(name, comment, parentNr) {
     const ids = keys(this.props.branches).filter(key=>key !== this.state.modifiedBranch);
+    parentNr = parseInt(parentNr,10);
     const parentId = parentNr === 0 ? 'root': ids[parentNr-1];
 
     const id = this.state.modifiedBranch;
@@ -61,10 +63,11 @@ class Branches extends Component {
 
   deleteCallback() {
     const id = this.state.modifiedBranch;
+    this.setState({modifiedBranch: '', branchDialogOpen: false});
     db.deleteBranch(this.props.userId, id).catch((err) => {
       const error = {'title': `Could not delete branch`, 'description': err.message || 'Could not delete branch'};
       this.setState({error});
-    });      
+    });    
   }
   
   cancelCallback() {

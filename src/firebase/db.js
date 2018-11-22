@@ -207,7 +207,14 @@ export const putPublicBranch = (branchId, account) => {
   return put(db.ref(`public_branches/${branchId}`), account);
 };
 export const deletePublicBranch = (branchId) => {
-  return remove(db.ref(`public_branches/${branchId}`));
+  return new Promise(function(resolve, reject) {
+    db.ref(`public_branches`).once('value', function(snapshot) {
+      if (snapshot.hasChild(branchId)) {
+        remove(db.ref(`public_branches/${branchId}`)).then(resolve).catch(reject)
+      };
+      resolve();
+    });
+  });
 };
 
 export const putBranch = (userId, branchId, branch) => 
@@ -224,14 +231,14 @@ export const deleteBranch = (userId, branchId) =>
     deleteDynamicsEvents(userId, branchId),
     deleteLatestDynamicss(userId, branchId),
     deletePrivacySettings(userId, branchId),
-    deletePublicBranch(userId, branchId),
+    deletePublicBranch(branchId),
     deleteLatestBioSkills(userId, branchId),
     deleteLatestBioEvents(userId, branchId),
     deleteBioSkillEvents(userId, branchId),
     deleteBioEventEvents(userId, branchId),
     deleteBioImage(userId, branchId)    
   ]).then(() => 
-    remove(db.ref(`branches/${userId}, ${branchId}`)))
+    remove(db.ref(`branches/${userId}/${branchId}`)))
 
 export const postLatestBioEvent = (userId, branchId, event) => 
   post(db.ref(`bio_events/${userId}/${branchId}`), event);
