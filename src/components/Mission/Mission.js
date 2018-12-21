@@ -71,7 +71,7 @@ class Mission extends Component {
           </article>        
           <Paper elevation={1} className={this.props.classes.root}>
             <Typography variant="headline" component="h3">
-              {this.state.missions[0].mission}
+              {this.state.missions[this.state.missions.length-1].mission}
             </Typography> 
           </Paper> 
         </div>
