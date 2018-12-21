@@ -153,6 +153,7 @@ class CentreImage extends React.Component {
           src={!!this.props.image ? this.props.image.image : defaultImage}
           onClick={this.props.onClick}
           alt = {''} 
+          onError= {(e)=>{e.target.onerror = null; e.target.src=defaultImage}}
           width = {this.props.middleCircleRadius*2} 
           height = {this.props.middleCircleRadius*2}
           style = {!!this.props.image ? {clipPath:`circle(${this.props.middleCircleRadius}px at center)`, webkitClipPath:`circle(${this.props.middleCircleRadius}px at center)`} : {}}

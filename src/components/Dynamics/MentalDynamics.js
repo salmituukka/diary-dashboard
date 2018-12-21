@@ -107,10 +107,11 @@ class MentalDynamics extends Component {
   }
 
   estimateDynamics() {
-    /*UGGLY EXPERIMENTAL SOLUTION*/ 
+    /*UGGLY FAST EXPERIMENTAL SOLUTION
+    This could be probabably replaced with HMM
+    */ 
     const {metas, dynamics} = this.state;
 
-    const weightDecay = 0.5;
     const timeDecay = 0.92;
     const timeDecayScaling = metas.map(meta => timeDecay ** moment().diff(moment(meta.date, "YYYYMMDD"), 'days')).reduce((a,b) => a+b, 0);
     const getNodeVals = (node, estimatedVals, metas) => {      
@@ -129,27 +130,33 @@ class MentalDynamics extends Component {
       const totalWeight = Object.values(node.parents).reduce((a,b) => a+Math.abs(b.weight) / node.parent_explanation, 0);
       const parentVal = keys(node.parents).map(parent => {
         return !!estimatedVals[parent] ? {
-          val: (estimatedVals[parent].val-0.5) * estimatedVals[parent].weight * weightDecay * Math.sign(node.parents[parent].weight),
-          weight: estimatedVals[parent].weight * weightDecay * Math.abs(node.parents[parent].weight) / totalWeight,
+          val: (estimatedVals[parent].val) * estimatedVals[parent].weight * node.parents[parent].weight/totalWeight,
+          weight: estimatedVals[parent].weight * Math.abs(node.parents[parent].weight) / totalWeight,
           ready: estimatedVals[parent].ready,
         }: {val:0, weight:0,ready:false};
-      })/*.concat(node.negative_parents.map(parent => {
-        return !!estimatedVals[parent] ? {
-          val: -(estimatedVals[parent].val-0.5) * estimatedVals[parent].weight * weightDecay,
-          weight: estimatedVals[parent].weight * weightDecay / (node.positive_parents.length + node.negative_parents.length),
-          ready: estimatedVals[parent].ready
-        }: {val:0, weight:0,ready:false};
-      }))*/.reduce((a, b) => {
+      }).reduce((a, b) => {
         return {
           val: a.val + b.val,
           weight: a.weight + b.weight,
           ready: a.ready && b.ready,
         };
       }, {val: 0, weight: 0, ready: true});
-      return {val: meanVal+parentVal.val, weight: Math.min(1,weight + parentVal.weight), ready: ready || parentVal.ready};
+      return {
+        val: Math.min(0.5, Math.max(-0.5, meanVal+parentVal.val)), 
+        weight: Math.min(1,weight + parentVal.weight), 
+        ready: ready || parentVal.ready
+      };
     }
-    const ratioOfRatedDays = (a, metas) => metas.map(meta => meta[a.diary_reference]).filter(val => !!val).length / metas.length;
-    const metric = (a, metas) => a.positive_parents.length + a.negative_parents.length - ratioOfRatedDays(a, metas)
+
+
+    
+    const metric = (a, metas) => toPairs(a.parents).map((parent_id, parent) => parent.weight
+            * (!dynamics[parent_id] ? [0]
+            : metas.filter(meta => !!meta[dynamics[parent_id].diary_reference]).map(meta => timeDecay ** moment().diff(moment(meta.date, "YYYYMMDD"), 'days'))))
+            .reduce((a,b)=>a+b,0)*a.parent_explanation
+
+    //const ratioOfRatedDays = (a, metas) => metas.map(meta => meta[a.diary_reference]).filter(val => !!val).length / metas.length;
+    //const metric = (a, metas) => a.parents.map(parent => parent.weight).reduce((a,b)=>a+b,0)*a.parent_explanation - ratioOfRatedDays(a, metas)
     const sortedPairs = toPairs(dynamics).sort((a,b) => metric(a[1], metas) - metric(b[1], metas));
     const estimatedRounds = 5;
     const estimatedDynamics = {}

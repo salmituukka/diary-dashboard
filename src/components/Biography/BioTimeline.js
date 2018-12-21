@@ -97,8 +97,13 @@ class BioTimeline extends Component {
         .map(event => groupEvents.filter(other => event.start <= other.start && event.end >= other.start)).filter(events => events.length > 1).map(events => 
           keyBy(events.map((other, index) => { 
             return {id: other.id, index: index, size: events.length}
-          }),  o=>o.id))
-      ).map(a=>!!a?a[0]:a);
+          }),  o=>
+          {
+            return o.id
+          }))
+      ).map(a=>{
+        return a.reduce((val1,val2) => Object.assign({}, val1, val2), {});
+      });
 
     const items = uniq(this.props.events
       .map((event, index) => {
@@ -108,7 +113,7 @@ class BioTimeline extends Component {
         return {
           //style: timelineStyle,
           id: index,
-          content: !!event.logo ? `<img src=${event.logo} alt="logo" height="${groupHeight(size)}">`:contentWithoutImage(event.name),
+          content: !!event.logo ? '<div>'+event.logo.split(',+,').map(logo=>`<img src=${logo} alt="logo" height="${groupHeight(size)}">`)+'</div>':contentWithoutImage(event.name),
           start: moment(event.start, 'YYYY-MM-DD'),
           end: !!event.end ? moment(event.end, 'YYYY-MM-DD'): undefined,
           group: groupNames.indexOf(event.group),
