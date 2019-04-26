@@ -134,7 +134,3 @@ https://firebase.google.com/
 
 ### Deploy the service
 https://firebase.google.com/docs/hosting/deploying
-
-```
-
-```
