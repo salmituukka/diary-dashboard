@@ -40,12 +40,23 @@ class Biography extends Component {
         this.setState({image});
       }
     }.bind(this));
+    this.bioReasonListener = db.getBioReasons(this.props.userId, this.props.branchId, function(dataSnapshot) {
+      const reasons = dataSnapshot.val();
+      if (reasons != null) {
+        var {events} = this.state;
+        Object.keys(reasons).forEach(eventId => {
+          events[eventId].reasons = Object.entries(reasons[eventId]).map(reason => Object.assign({}, {id: reason[0]}, reason[1]));
+        });
+        this.setState({events});
+      }
+    }.bind(this)); 
   }
 
   componentWillUnmount() {
     this.bioEventListener.off();
     this.bioSkillsListener.off();
     this.bioImageListener.off();
+    this.bioReasonListener.off();
   }
 
   constructor(props) {
@@ -86,8 +97,9 @@ class Biography extends Component {
     eventCopy.time = moment().format('YYYYMMDDhhmmss');
     eventCopy.type = 'DELETE';    
     return db.deleteLatestBioEvent(this.props.userId, this.props.branchId, keys[eventIndex]).then(() =>
-      db.postBioEventEvent(this.props.userId, this.props.branchId,  keys[eventIndex], eventCopy)
-    ).catch(err => {
+      db.deleteBioReasonsForEvent(this.props.userId, this.props.branchId, keys[eventIndex]).then(() =>
+        db.postBioEventEvent(this.props.userId, this.props.branchId,  keys[eventIndex], eventCopy)
+    )).catch(err => {
       const error = {'title': 'Could not delete event', 'description': err.message || 'Could not delete event'};
       this.setState({error})
     });
@@ -100,6 +112,38 @@ class Biography extends Component {
       db.postBioEventEvent(this.props.userId, this.props.branchId, ref.key, event)
     ).catch(err => {
       const error = {'title': 'Could not add event', 'description': err.message || 'Could not add event'};
+      this.setState({error})
+    });
+  }
+
+  editReasonCallback(eventIndex, reasonId, reason) {
+    const keys = Object.keys(this.state.events);
+    reason.updateTime = moment().format('YYYYMMDDhhmmss');
+
+    return db.putBioReason(this.props.userId, this.props.branchId, keys[eventIndex], reasonId, reason)
+    .catch(err => {
+      const error = {'title': 'Could not edit reason', 'description': err.message || 'Could not edit reason'};
+      this.setState({error})
+    });
+  }
+
+  addReasonCallback(eventIndex, reason) {
+    const keys = Object.keys(this.state.events);
+    reason.time = moment().format('YYYYMMDDhhmmss');
+    return db.postBioReason(this.props.userId, this.props.branchId, keys[eventIndex], reason)
+    .catch(err => {
+      const error = {'title': 'Could not add reason', 'description': err.message || 'Could not add reason'};
+      this.setState({error})
+    });
+  }
+
+  deleteReasonCallback(eventIndex, reasonId) {
+    const keys = Object.keys(this.state.events);   
+    console.info(keys[eventIndex])
+    console.info(reasonId)
+    return db.deleteBioReason(this.props.userId, this.props.branchId, keys[eventIndex], reasonId)
+    .catch(err => {
+      const error = {'title': 'Could not delete reason', 'description': err.message || 'Could not delete reason'};
       this.setState({error})
     });
   }
@@ -120,7 +164,7 @@ class Biography extends Component {
     newSkill.time = moment().format('YYYYMMDDhhmmss');
     newSkill.type = 'MODIFY';    
     return db.putLatestBioSkill(this.props.userId, this.props.branchId, keys[skillIndex], newSkill).then(() =>
-      db.postBioSkillEvent(this.props.userId, this.props.branchId,  keys[skillIndex], newSkill)
+      db.postBioSkillEvent(this.props.userId, this.props.branchId, keys[skillIndex], newSkill)
     ).catch(err => {
       const error = {'title': 'Could not edit skill', 'description': err.message || 'Could not edit skill'};
       this.setState({error})
@@ -134,7 +178,7 @@ class Biography extends Component {
     skillCopy.time = moment().format('YYYYMMDDhhmmss');
     skillCopy.type = 'DELETE';      
     return db.deleteLatestBioSkill(this.props.userId, this.props.branchId, keys[skillIndex]).then(() =>
-      db.postBioSkillEvent(this.props.userId, this.props.branchId,  keys[skillIndex], skillCopy)
+      db.postBioSkillEvent(this.props.userId, this.props.branchId, keys[skillIndex], skillCopy)
     ).catch(err => {
       const error = {'title': 'Could not delete skill', 'description': err.message || 'Could not delete skill'};
       this.setState({error})
@@ -182,6 +226,9 @@ class Biography extends Component {
               events = {events} 
               editEventCallback = {this.editEventCallback.bind(this)} 
               deleteEventCallback = {this.deleteEventCallback.bind(this)} 
+              editReasonCallback = {this.editReasonCallback.bind(this)} 
+              addReasonCallback = {this.addReasonCallback.bind(this)} 
+              deleteReasonCallback = {this.deleteReasonCallback.bind(this)}               
               heightRatio = {timelineHeight}/>
           </div>
         )} 

@@ -44,7 +44,22 @@ class BioTimeline extends Component {
     const selectedEvent = this.state.selectedEvent;
     this.setState({selectedEvent: undefined});
     return this.props.deleteEventCallback(selectedEvent);
-  }   
+  }
+
+  eventDialogEditReasonCallback(reason) {
+    const selectedEvent = this.state.selectedEvent;
+    const id = reason.id;
+    delete reason.id;    
+    if (!!id) {
+      this.props.editReasonCallback(selectedEvent, id, reason);
+    }
+    return this.props.addReasonCallback(selectedEvent, reason);
+  } 
+
+  eventDialogDeleteReasonCallback(reasonId) {
+    const selectedEvent = this.state.selectedEvent;
+    return this.props.deleteReasonCallback(selectedEvent, reasonId);
+  }    
 
   componentDidUpdate(prevProps) {
     if (!!prevProps && this.props.heightRatio !== prevProps.heightRatio) {
@@ -60,7 +75,7 @@ class BioTimeline extends Component {
 
   render() {    
     const suppressMode = this.state.height < 150;
-    const options = {
+    var options = {
       start: this.state.start,
       end: this.state.end,
       height: this.state.height,
@@ -75,6 +90,12 @@ class BioTimeline extends Component {
       groupOrder: 'content',
       showMajorLabels: false
     };
+    if (!options.end) {
+      delete options.end;
+    }
+    if (!options.start) {
+      delete options.start;
+    }    
 
     const groupNames = uniq(this.props.events.map(event => event.group));
     const groupHeight = (numSubgroups) => Math.max(5, this.state.height * (60/184) *3 /(groupNames.length * numSubgroups) -20 + (numSubgroups-1)*4);
@@ -110,7 +131,7 @@ class BioTimeline extends Component {
         const groupIndex = groupNames.indexOf(event.group)
         const subgroupIndex = overlappingEvents[groupIndex] && overlappingEvents[groupIndex][index] ? overlappingEvents[groupIndex][index].index: undefined
         const size = overlappingEvents[groupIndex] && overlappingEvents[groupIndex][index] ? overlappingEvents[groupIndex][index].size: 1
-        return {
+        var item = {
           //style: timelineStyle,
           id: index,
           content: !!event.logo ? '<div>'+event.logo.split(',+,').map(logo=>`<img src=${logo} alt="logo" height="${groupHeight(size)}">`)+'</div>':contentWithoutImage(event.name),
@@ -123,11 +144,12 @@ class BioTimeline extends Component {
           title: event.title,
           style: (!!event.subgroup && !!event.end? 'background-color: rgba(193,201,226,0.6);'	:'') + (suppressMode ? `font-size:${Math.floor(8/size)}px`: `font-size:${Math.floor(14/size)}px`)
         }
+        if (!item.end) {
+          delete item.end
+        }
+        return item
       })
     );
-
-    console.info(options);
-    console.info(items);
 
     return (
       <div>        
@@ -143,6 +165,8 @@ class BioTimeline extends Component {
             deleteCallback = {this.eventDialogDeleteCallback.bind(this)}
             cancelCallback = {this.eventDialogCancelCallback.bind(this)}
             submitCallback = {this.eventDialogEditCallback.bind(this)}
+            deleteReasonCallback = {this.eventDialogDeleteReasonCallback.bind(this)}
+            submitReasonCallback = {this.eventDialogEditReasonCallback.bind(this)}            
           />
         )}
       </div>

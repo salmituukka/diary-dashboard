@@ -14,6 +14,25 @@ import renderHTML from 'react-render-html';
 import * as showdown from 'showdown';
 import {githubTemplate} from '../../helpers/htmlHelper';
 import pick from 'lodash/pick';
+import List from '@material-ui/core/List';
+import ListItem from '@material-ui/core/ListItem';
+import ListItemText from '@material-ui/core/ListItemText';
+import Typography from '@material-ui/core/Typography';
+import ReasonDialog from './ReasonDialog';
+import PropTypes from "prop-types";
+import { withStyles } from "@material-ui/core/styles";
+
+const styles = theme => ({
+  positive: {
+      backgroundColor: 'green',
+    },
+    negative: {
+      backgroundColor: 'red',
+    },
+    neutral: {
+      backgroundColor: 'yellow',
+    }
+  });
 
 class BioEventDialog extends Component {  
   
@@ -28,7 +47,10 @@ class BioEventDialog extends Component {
       subgroup: '',
       logo: '',
       description: '',
-      descriptionEditMode: true
+      descriptionEditMode: true,
+      reasons: [],
+      reasonDialogOpen: false,
+      selectedReason: undefined
     }; 
     this.converter = new showdown.Converter();
   }
@@ -61,6 +83,43 @@ class BioEventDialog extends Component {
     });
   };  
     
+  openReasonDialog = reason => {
+    this.setState({
+      reasonDialogOpen: true,
+      selectedReason: reason
+    });
+  };  
+
+  reasonCancelCallback() {
+    this.setState({reasonDialogOpen: false})
+  }  
+
+  reasonEditCallback(reason) {
+    this.setState({reasonDialogOpen: false});
+    return this.props.submitReasonCallback(reason).then(() => {
+      var {reasons} = this.state;
+      if (!!reason.id) {
+        reasons = reasons.map(reason2 => reason2.id === reason.id ? reason: reason2);
+      } else {
+        reasons.push(reason);
+      }
+      this.setState(reasons);
+    });
+  }
+
+  reasonDeleteCallback() {
+    this.setState({reasonDialogOpen: false});
+    if (!!this.state.selectedReason.id) {
+      return this.props.deleteReasonCallback(this.state.selectedReason.id).then(() => {
+        var {reasons} = this.state;
+        reasons = reasons.filter(reason => reason.id !== this.state.selectedReason.id);
+        this.setState(reasons);
+      });
+    } else {
+      return Promise.reject("Could not delete");
+    }
+  }
+
   componentDidMount() {
     if (!!this.props.event) {
       var stateCopy = {...this.state};
@@ -180,13 +239,39 @@ class BioEventDialog extends Component {
               margin = "dense"
               id = "event_logo"
               label = "Logo URL"
-              type = "text"
+              type = "text" 
               required = {false}
-            />       
+            />
+            {this.props.deleteCallback && (
+              <div>
+                <Typography variant="h6">
+                  Reasons
+                </Typography>            
+                <List component="nav" aria-label="Reasons">
+                  {this.state.reasons.map(reason => (
+                  <ListItem
+                    key = {reason.id}
+                    className={reason.type > 0 ? this.props.classes.positive : reason.type < 0 ? this.props.classes.negative: this.props.classes.neutral}
+                    button
+                    onClick={_ => this.openReasonDialog(reason)}
+                    >
+                    <ListItemText primary={reason.name} />
+                  </ListItem>
+                  ))}
+                <ListItem 
+                    key = "item_new"
+                    button
+                    onClick={_ => this.openReasonDialog()}
+                    >
+                    <ListItemText primary="Add new reason" />
+                </ListItem>                
+                </List>
+              </div>               
+            )}
           </DialogContent>
           <DialogActions>
             {this.props.deleteCallback &&
-            <Button onClick={this.props.deleteCallback} color="red">
+            <Button onClick={this.props.deleteCallback} color="secondary">
               Delete
             </Button>}
             <Button onClick={this.submitCallback} color="primary">
@@ -197,9 +282,21 @@ class BioEventDialog extends Component {
             </Button>            
           </DialogActions>
         </Dialog>
+        {!!this.state.reasonDialogOpen && (
+          <ReasonDialog  
+            reason = {this.state.selectedReason}
+            deleteCallback = {!!this.state.selectedReason ? this.reasonDeleteCallback.bind(this): undefined}
+            cancelCallback = {this.reasonCancelCallback.bind(this)}
+            submitCallback = {this.reasonEditCallback.bind(this)}            
+          />
+        )}
       </div>
     )
   }
 }
 
-export default BioEventDialog;
+BioEventDialog.propTypes = {
+  classes: PropTypes.object.isRequired,
+};
+
+export default withStyles(styles)(BioEventDialog);
