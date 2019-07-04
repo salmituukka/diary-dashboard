@@ -8,8 +8,8 @@ import map from 'lodash/map';
 import toPairs from 'lodash/toPairs';
 
 import FormLabel from '@material-ui/core/FormLabel';
-import FormGroup from '@material-ui/core/FormGroup';
-import FormControlLabel from '@material-ui/core/FormControlLabel';
+import GridList from '@material-ui/core/GridList';
+import ListItem from '@material-ui/core/ListItem';
 import Checkbox from '@material-ui/core/Checkbox';
 import ReactTooltip from 'react-tooltip'
 
@@ -38,12 +38,13 @@ const divCenter = (width, height, offset) => {
 
 const checkbox = (height) => {
   return {
-    position: 'absolute',
-    top: `${height}px`,
-    left: `0px`
+    direction: 'rtl',
+    maxHeight: height,
+    width:'auto',
+    overflowY: 'auto',
+    overflowX: 'hidden'    
   };
 };
-
 
 class SingleSkillCloud extends React.Component {
   constructor(props) {
@@ -295,19 +296,16 @@ class SkillCloud extends React.Component {
           middleCircleRadius = {middleCircleRadius}
           onClick = {this.openImageDialog.bind(this)}
         />
-        <div style={checkbox(this.props.yOffset * this.state.height / ( 1- this.props.yOffset))}>
-          <FormLabel component="legend">{!suppressMode ? 'Skill groups': 'Skills'}</FormLabel>
-          <FormGroup>
+        <FormLabel component="legend">{!suppressMode ? 'Skill groups': 'Skills'}</FormLabel>
+        <div style={checkbox(this.state.height-50)}>          
+          <GridList disablePadding={true} cols={1} cellHeight='auto' style={{overflow:'hidden'}}>            
             {map(groups, group => (
-              <FormControlLabel
-                key = {group}
-                control={
-                  <Checkbox style = {{height: Math.min(this.state.height/15,50)}} checked={this.state.groups[group] === undefined || this.state.groups[group]} value={group} onChange={(event, checked) => this.handleChange(group, checked)}/>
-                }
-                label={!suppressMode ? group: ''}
-              />
+              <ListItem style={{direction:'ltr', left:0, height:40}}>
+                  <Checkbox checked={this.state.groups[group] === undefined || this.state.groups[group]} value={group} onChange={(event, checked) => this.handleChange(group, checked)}/>
+                  {!suppressMode ? group: ''}
+              </ListItem>
             ))}
-          </FormGroup>
+          </GridList>
         </div>
         {!!this.state.imageDialogOpen && (
           <BioImageDialog  
