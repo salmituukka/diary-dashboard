@@ -18,13 +18,14 @@ class Biography extends Component {
       if (unorderedEvents != null) {
         // Create items array
         const keyValPair = Object.keys(unorderedEvents).map(function(key) {
-          return [key, unorderedEvents[key]];
+          return [key, Object.assign(unorderedEvents[key], {secrets:[]})];
         });
         const sortEvents = (ev1,ev2) => {
           return !!ev1[1].subgroup && !!ev2[1].subgroup ? ev1[1].start - ev2[1].start + ev1[1].title > ev2[1].title
           :!!ev1[1].subgroup ? 1: !!ev2[1].subgroup ? -1: ev1[1].start - ev2[1].start + ev1[1].title > ev2[1].title;
         }      
         const events = mapValues(keyBy(keyValPair.sort(sortEvents), item=> item[0]), (item => item[1]));
+        console.info(events)
         this.setState({events});
       }
     }.bind(this));
@@ -71,8 +72,13 @@ class Biography extends Component {
     const keys = Object.keys(this.state.events);
     newEvent.time = moment().format('YYYYMMDDhhmmss');
     newEvent.type = 'MODIFY';
+    const secrets = newEvent.secrets;
+    delete newEvent['secrets'] 
     db.putLatestBioEvent(this.props.userId, this.props.branchId, keys[eventIndex], newEvent).then(() =>
-      db.postBioEventEvent(this.props.userId, this.props.branchId,  keys[eventIndex], newEvent)
+      db.postBioEventEvent(this.props.userId, this.props.branchId,  keys[eventIndex], newEvent).then(()=> 
+        Promise.all([secrets.map(secret => db.postBioEventSecretEvent(this.props.userId, this.props.branchId, keys[eventIndex], secret))])).then(()=>
+          db.deleteLatestBioEventSecrets(this.props.userId, this.props.branchId, keys[eventIndex])).then(()=>
+            Promise.all([secrets.map(secret => db.postLatestBioEventSecret(this.props.userId, this.props.branchId, keys[eventIndex], secret))]))
     ).catch(err => {
       const error = {'title': 'Could not edit event', 'description': err.message || 'Could not edit event'};
       this.setState({error})
@@ -86,7 +92,8 @@ class Biography extends Component {
     eventCopy.time = moment().format('YYYYMMDDhhmmss');
     eventCopy.type = 'DELETE';    
     return db.deleteLatestBioEvent(this.props.userId, this.props.branchId, keys[eventIndex]).then(() =>
-      db.postBioEventEvent(this.props.userId, this.props.branchId,  keys[eventIndex], eventCopy)
+      db.postBioEventEvent(this.props.userId, this.props.branchId,  keys[eventIndex], eventCopy).then(()=>
+        db.deleteLatestBioEventSecrets(this.props.userId, this.props.branchId, keys[eventIndex]))
     ).catch(err => {
       const error = {'title': 'Could not delete event', 'description': err.message || 'Could not delete event'};
       this.setState({error})
@@ -95,10 +102,15 @@ class Biography extends Component {
 
   addEventCallback(event) {
     event.time = moment().format('YYYYMMDDhhmmss');
-    event.type = 'ADD';    
+    event.type = 'ADD';
+    const secrets = event.secrets;
+    event.delete('secrets')
     return db.postLatestBioEvent(this.props.userId, this.props.branchId, event).then((ref) =>
-      db.postBioEventEvent(this.props.userId, this.props.branchId, ref.key, event)
-    ).catch(err => {
+      Promise.all(secrets.map(secret => db.postLatestBioEventSecret(
+        (this.props.userId, this.props.branchId, ref.key, secret)
+      ))).then(() => 
+        db.postBioEventEvent(this.props.userId, this.props.branchId, ref.key, event)
+    )).catch(err => {
       const error = {'title': 'Could not add event', 'description': err.message || 'Could not add event'};
       this.setState({error})
     });
