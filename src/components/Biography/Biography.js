@@ -13,19 +13,19 @@ import mapValues from 'lodash/mapValues';
 
 class Biography extends Component {
   componentDidMount() {
-    this.bioEventListener = db.getLatestBioEvents(this.props.userId, this.props.branchId, function(dataSnapshot) {
+    this.bioEventListener = db.getLatestBioEvents(this.props.userId, this.props.branchId, function(dataSnapshot, dataSnapshotSecrets) {
       const unorderedEvents = dataSnapshot.val();
+      const secrets = !!dataSnapshotSecrets ? dataSnapshotSecrets.val() || {}: {};
       if (unorderedEvents != null) {
         // Create items array
         const keyValPair = Object.keys(unorderedEvents).map(function(key) {
-          return [key, Object.assign(unorderedEvents[key], {secrets:[]})];
+          return [key, Object.assign(unorderedEvents[key], {secrets:Object.values(secrets[key] || [])})];
         });
         const sortEvents = (ev1,ev2) => {
           return !!ev1[1].subgroup && !!ev2[1].subgroup ? ev1[1].start - ev2[1].start + ev1[1].title > ev2[1].title
           :!!ev1[1].subgroup ? 1: !!ev2[1].subgroup ? -1: ev1[1].start - ev2[1].start + ev1[1].title > ev2[1].title;
         }      
         const events = mapValues(keyBy(keyValPair.sort(sortEvents), item=> item[0]), (item => item[1]));
-        console.info(events)
         this.setState({events});
       }
     }.bind(this));

@@ -25,7 +25,7 @@ class BioTimeline extends Component {
   }
 
   openEventDialog(event) {
-    if (!!event && !!event.item) {
+    if (!!event && event.item !== undefined) {
       this.setState({selectedEvent: event.item})
     }
   }
@@ -126,9 +126,6 @@ class BioTimeline extends Component {
       })
     );
 
-    console.info(options);
-    console.info(items);
-
     return (
       <div>        
         <Timeline
@@ -137,7 +134,7 @@ class BioTimeline extends Component {
           options = {options}
           clickHandler={this.openEventDialog.bind(this)}
         />
-        {!!this.state.selectedEvent && (
+        {this.state.selectedEvent !== undefined && (
           <BioEventDialog  
             event = {this.props.events[this.state.selectedEvent]}
             deleteCallback = {this.eventDialogDeleteCallback.bind(this)}

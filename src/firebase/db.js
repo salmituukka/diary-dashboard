@@ -66,8 +66,11 @@ export const getBranches = (userId, callback, errorCallback) => {
 };
 
 export const getLatestBioEvents = (userId, branchId, callback, errorCallback) => {
-  const ref = db.ref(`bio_events/${userId}/${branchId}`);
-  ref.on("value", callback, errorCallback);
+  const ref = db.ref(`bio_events/${userId}/${branchId}`);  
+  ref.on("value", (snapshot) => {
+    const ref_secrets = db.ref(`bio_event_secrets/${userId}/${branchId}`);
+    ref_secrets.on("value", (snapshot_secrets) => callback(snapshot, snapshot_secrets), callback(snapshot, undefined))
+  }, errorCallback);
   return ref;
 };
 

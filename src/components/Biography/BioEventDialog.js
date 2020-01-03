@@ -16,28 +16,23 @@ import {githubTemplate} from '../../helpers/htmlHelper';
 import pick from 'lodash/pick';
 import uuid4 from 'uuid/v4'
 
-const secret_start_save_format_reg = /<SECRET=(\w|-)+>/gm;
-const secret_start_save_format = '<SECRET=x>';
-const secret_end_save_format = '</SECRET_END>';
+const secret_start_save_format_reg = /<SECRET=(\w|-)+\/>/gm;
 const secret_start_view_format = '<SECRET>';
 const secret_end_view_format = '</SECRET>';
 
 const replaceSecretTagsByColor = (text, secrets) => {
-  const re = id => `<SECRET=${id}>(.|\n)+<\/SECRET>`;
-  console.info(text)
-  console.info(secrets)
+  const re = id => `<SECRET=${id}/>`;
   const textWithColors = secrets.reduce((accum, item) => 
   accum.replace(RegExp(re(item['id']), 'gm'), `<span style="color:rgb(255,0,0)">${item['text']}</span>`),
   text).replace(secret_start_save_format_reg, '').replace(secret_end_view_format, '')
-  console.info(textWithColors);
   return textWithColors;
 }
 
 const description2Edit = (text, secrets) => {
-  const re = id => `<SECRET=${id}>(.|\n)+<\/SECRET>`;
+  const re = id => `<SECRET=${id}/>`;
   return secrets.reduce((accum, item) => 
   accum.replace(RegExp(re(item['id']), 'gm'), `${secret_start_view_format}${item['text']}${secret_end_view_format}`),
-  text).replace(secret_start_save_format_reg, '').replace(secret_end_view_format, '') 
+  text).replace(secret_start_save_format_reg, '')
 }
 
 const secretsFromTextWithTags = (textWithTags) => {
@@ -46,42 +41,24 @@ const secretsFromTextWithTags = (textWithTags) => {
   var newText = (' ' + textWithTags).slice(1)
   var secrets = []
 
-  var secretPart;
-  console.info(secretStarts.length)
   while (secretStarts >= 0) {
-    console.info(secretPart)
-    console.info('here')
-    var substring = textWithTags.substring(secret_start_view_format.length, secretStarts[secretPart])
+    var substring = textWithTags.substring(secret_start_view_format.length + secretStarts)
     var secretEnds = substring.indexOf('</SECRET>')
-    console.info(secretEnds)
-    if (secretEnds == -1) {
+    if (secretEnds === -1) {
       break;
     }
-    console.info(secretEnds)
-    console.info(uuid4())
     const uuid = uuid4()
     secrets.push({
       id:uuid,
-      text: substring.slice(secret_start_view_format.length-1, secretEnds)
+      text: substring.slice(0, secretEnds)
     });
-    newText = newText.replace(/<SECRET>/m, `<SECRET=${uuid}>`)
+    newText = newText.replace(/<SECRET>((?!<SECRET>)(.|\n))+<\/SECRET>/m, `<SECRET=${uuid}/>`)
     secretStarts = textWithTags.indexOf('<SECRET>', secretStarts+1)
   }
-  console.info(newText)
-  console.info(secrets)
-  console.info(secretStarts)
   return {
     text: newText,
     secrets: secrets
   }
-
-/*
-  var matches = re.exec(textWithTags);
-  const tags = matches.map(match => match.split('<SECRET>')[1])
-  const plainText = uuid4()
-  return Object.entries(secrets).reduce((accum, item) => 
-  accum.replace(`${secret_start_view_format}\n${item[1]}\n${secret_end_view_format}`),
-  text).replace(secret_start_save_format, '').replace(secret_end_save_format, '') */
 }
 
 class BioEventDialog extends Component {  
@@ -121,8 +98,13 @@ class BioEventDialog extends Component {
 
   submitCallback = () => {
     if (this.validateFields()) {
-      this.props.submitCallback(
-        this.state2event());
+      var event = this.state2event();
+      if (this.state.descriptionEditMode) {
+        const textAndSecrets = secretsFromTextWithTags(this.state.descriptionEdit)
+        event.secrets = textAndSecrets.secrets;
+        event.description = textAndSecrets.text;
+      }
+      this.props.submitCallback(event);
     }
   };
 
@@ -136,7 +118,6 @@ class BioEventDialog extends Component {
 
   descriptionChange = () => {
     const textAndSecrets = secretsFromTextWithTags(this.state.descriptionEdit)
-    console.info(textAndSecrets)
     this.setState({
       'description': textAndSecrets.text,
       'secrets': textAndSecrets.secrets,
@@ -155,13 +136,15 @@ class BioEventDialog extends Component {
       var stateCopy = {...this.state};
       Object.keys(this.props.event).forEach(key => stateCopy[key] = this.props.event[key]);
       stateCopy.descriptionEditMode = false;
+      if (stateCopy.descriptionEditMode) {
+        stateCopy.descriptionEdit = description2Edit(stateCopy.description, stateCopy.secrets)
+      }
       this.setState(stateCopy);
     }
   }  
 
   render() {
     const {secrets} = this.state;
-    console.info(this.state.description)
     return (
       <div>
        <Dialog
