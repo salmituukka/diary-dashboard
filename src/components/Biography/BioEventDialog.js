@@ -20,13 +20,6 @@ const secret_start_save_format_reg = /<SECRET=(\w|-)+\/>/gm;
 const secret_start_view_format = '<SECRET>';
 const secret_end_view_format = '</SECRET>';
 
-const replaceSecretTagsByColor = (text, secrets) => {
-  const re = id => `<SECRET=${id}/>`;
-  const textWithColors = secrets.reduce((accum, item) => 
-  accum.replace(RegExp(re(item['id']), 'gm'), `<span style="color:rgb(255,0,0)">${item['text']}</span>`),
-  text).replace(secret_start_save_format_reg, '').replace(secret_end_view_format, '')
-  return textWithColors;
-}
 
 const description2Edit = (text, secrets) => {
   const re = id => `<SECRET=${id}/>`;
@@ -108,6 +101,17 @@ class BioEventDialog extends Component {
     }
   };
 
+  replaceSecretTagsByColor = (text, secrets) => {
+    const re = id => `<p><SECRET=${id}/></p>`;
+    console.info(this.converter.makeHtml(secrets[0]['text']))
+    const textWithColors = secrets.reduce((accum, item) => 
+    accum.replace(RegExp(re(item['id']), 'gm'), `<span style="color:rgb(255,0,0)">${this.converter.makeHtml(item['text'])}</span>`),
+    text).replace(secret_start_save_format_reg, '').replace(secret_end_view_format, '')
+    console.info(textWithColors)
+    console.info(text)
+    return textWithColors;
+  }
+
   descriptionEditMode = () => {
     const descriptionEdit = description2Edit(this.state.description, this.state.secrets)
     this.setState({
@@ -187,7 +191,7 @@ class BioEventDialog extends Component {
                     <EditIcon fontSize="small" />
                   </IconButton>                                   
                   <article>                  
-                    {renderHTML(githubTemplate(replaceSecretTagsByColor(this.converter.makeHtml(this.state.description), secrets)))}
+                    {renderHTML(githubTemplate(this.replaceSecretTagsByColor(this.converter.makeHtml(this.state.description), secrets)))}
                   </article>
                 </Paper>
               </div>
