@@ -25,7 +25,8 @@ class BioTimeline extends Component {
   }
 
   openEventDialog(event) {
-    if (!!event && event.item !== undefined) {
+    console.info(event)
+    if (!!event && event.item !== undefined && event.item !== null) {
       this.setState({selectedEvent: event.item})
     }
   }

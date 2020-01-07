@@ -103,12 +103,9 @@ class BioEventDialog extends Component {
 
   replaceSecretTagsByColor = (text, secrets) => {
     const re = id => `<p><SECRET=${id}/></p>`;
-    console.info(this.converter.makeHtml(secrets[0]['text']))
     const textWithColors = secrets.reduce((accum, item) => 
     accum.replace(RegExp(re(item['id']), 'gm'), `<span style="color:rgb(255,0,0)">${this.converter.makeHtml(item['text'])}</span>`),
     text).replace(secret_start_save_format_reg, '').replace(secret_end_view_format, '')
-    console.info(textWithColors)
-    console.info(text)
     return textWithColors;
   }
 
