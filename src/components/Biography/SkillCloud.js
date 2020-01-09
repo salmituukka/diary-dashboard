@@ -255,8 +255,8 @@ class SkillCloud extends React.Component {
     const totalArea = Math.PI * this.state.width * this.state.height - middleCircleArea;
     const areaGroup1 = totalArea * preferenceGroup1TextLengthSum / Math.max(1, totalTextLengthSum);
     const areaGroup2 = totalArea * preferenceGroup2TextLengthSum / Math.max(1, totalTextLengthSum);
-    const group1RelSize = Math.max(0.25, 
-       Math.sqrt((areaGroup1 + middleCircleArea) / (Math.PI * this.state.width * this.state.height)));
+    const group1RelSize = Math.min(0.75, Math.max(0.25, 
+       Math.sqrt((areaGroup1 + middleCircleArea) / (Math.PI * this.state.width * this.state.height))));
     const group2RelSize = Math.max(0.4, Math.min(0.9, Math.sqrt((areaGroup1 + areaGroup2 + middleCircleArea) / (Math.PI * this.state.width * this.state.height))));
     const group3RelSize = 1.0;
 
@@ -300,7 +300,7 @@ class SkillCloud extends React.Component {
         <div style={checkbox(this.state.height-50)}>          
           <GridList disablePadding={true} cols={1} cellHeight='auto' style={{overflow:'hidden'}}>            
             {map(groups, group => (
-              <ListItem style={{direction:'ltr', left:0, height:40}}>
+              <ListItem style={{direction:'ltr', left:0, height:40}} key={`list_item_${group}`}>
                   <Checkbox checked={this.state.groups[group] === undefined || this.state.groups[group]} value={group} onChange={(event, checked) => this.handleChange(group, checked)}/>
                   {!suppressMode ? group: ''}
               </ListItem>
