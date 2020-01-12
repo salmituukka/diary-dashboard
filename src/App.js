@@ -1,27 +1,30 @@
-import React, { Component } from 'react';
+import React, { Component, Suspense, lazy } from 'react';
 import {
   BrowserRouter as Router,
   Route,
 } from 'react-router-dom';
 
-import Branches from './components/Branches/Branches';
-import LandingPage from './components/Landing/Landing';
-import Diary from './components/Diary/Diary';
-import Biography from './components/Biography/Biography';
-import Mission from './components/Mission/Mission';
-import Plan from './components/Plan/Plan';
-import Settings from './components/Settings/Settings';
 import MentalDynamics from './components/Dynamics/MentalDynamics';
 import withAuthentication from './components/withAuthentication';
 
 import * as routes from './constants/routes';
+import './App.css';
 
+const Branches = lazy(() => import('./components/Branches/Branches'));
+const Settings = lazy(() => import('./components/Settings/Settings'));
+const Diary = lazy(() => import('./components/Diary/Diary'));
+const Plan = lazy(() => import('./components/Plan/Plan'));
+const LandingPage = lazy(() => import('./components/Landing/Landing'));
+const Mission = lazy(() => import('./components/Mission/Mission'));
+const Biography = lazy(() => import('./components/Biography/Biography'));
+//const MentalDynamics = lazy(() => import('./components/Dynamics/MentalDynamics'));
 
 class App extends Component {
   
   render () {
     return (
       <Router>
+        <Suspense fallback={<div>Loading...</div>}>
         <div>
           <Route
             exact path={routes.LANDING}
@@ -45,17 +48,18 @@ class App extends Component {
           />
           <Route
             path={`${routes.DYNAMICS}/:branchId/:userId?`}
-            render={MentalDynamics}
+            component={MentalDynamics}
           />
           <Route
             path={`${routes.BIO}/:branchId/:userId?`}
-            render={Biography}
+            component={Biography}
           />          
           <Route
             path={`${routes.SETTINGS}/:branchId/:userId?`}
-            render={Settings}
+            component={Settings}
           /> 
         </div>
+        </Suspense>
       </Router>
     );
   }

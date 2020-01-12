@@ -24,11 +24,21 @@ class BioTimeline extends Component {
     this.setState({ width: window.innerWidth * widthRatio, height: window.innerHeight*heightRatio });
   }
 
-  openEventDialog(event) {
-    if (!!event && !!event.item) {
+  openEventDialog(event) { 
+    const valid = event.event.timeStamp > (this.rangeChangedTimestamp + 100 || 0);
+    if (!!event && event.item !== undefined && event.item !== null && valid) {
       this.setState({selectedEvent: event.item})
     }
   }
+
+  rangechangedHandler(event) {
+    try {
+      this.rangeChangedTimestamp = event.event.srcEvent.timeStamp  
+    } 
+    catch (error) {
+      this.rangeChangedTimestamp = 0
+    }
+  } 
 
   eventDialogCancelCallback() {
     this.setState({selectedEvent: undefined})
@@ -70,7 +80,7 @@ class BioTimeline extends Component {
           horizontal: 0,
           vertical: 0
         }
-      },
+      },     
       stack: false,
       groupOrder: 'content',
       showMajorLabels: false
@@ -83,7 +93,7 @@ class BioTimeline extends Component {
       return {
         id: index,
         content: contentWithoutImage(group),
-        style: suppressMode ? 'font-size:8px': 'font-size:14px',
+        style: suppressMode ? 'font-size:8px': 'font-size:14px'
       };
     });    
 
@@ -123,11 +133,8 @@ class BioTimeline extends Component {
           title: event.title,
           style: (!!event.subgroup && !!event.end? 'background-color: rgba(193,201,226,0.6);'	:'') + (suppressMode ? `font-size:${Math.floor(8/size)}px`: `font-size:${Math.floor(14/size)}px`)
         }
-      })
-    );
-
-    console.info(options);
-    console.info(items);
+      })      
+    )
 
     return (
       <div>        
@@ -136,8 +143,9 @@ class BioTimeline extends Component {
           items = {items}
           options = {options}
           clickHandler={this.openEventDialog.bind(this)}
+          rangechangedHandler={this.rangechangedHandler.bind(this)}
         />
-        {!!this.state.selectedEvent && (
+        {this.state.selectedEvent !== undefined && (
           <BioEventDialog  
             event = {this.props.events[this.state.selectedEvent]}
             deleteCallback = {this.eventDialogDeleteCallback.bind(this)}

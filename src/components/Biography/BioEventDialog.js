@@ -14,12 +14,52 @@ import renderHTML from 'react-render-html';
 import * as showdown from 'showdown';
 import {githubTemplate} from '../../helpers/htmlHelper';
 import pick from 'lodash/pick';
+import uuid4 from 'uuid/v4'
+
+const secret_start_save_format_reg = /<SECRET=(\w|-)+\/>/gm;
+const secret_start_view_format = '<SECRET>';
+const secret_end_view_format = '</SECRET>';
+
+
+const description2Edit = (text, secrets) => {
+  const re = id => `<SECRET=${id}/>`;
+  return secrets.reduce((accum, item) => 
+  accum.replace(RegExp(re(item['id']), 'gm'), `${secret_start_view_format}${item['text']}${secret_end_view_format}`),
+  text).replace(secret_start_save_format_reg, '')
+}
+
+const secretsFromTextWithTags = (textWithTags) => {
+  //const re = /<SECRET>(((?!(<\/SECRET>))(.|\n|\r|\r\n))+$)/gm;
+  var secretStarts = textWithTags.indexOf('<SECRET>')
+  var newText = (' ' + textWithTags).slice(1)
+  var secrets = []
+
+  while (secretStarts >= 0) {
+    var substring = textWithTags.substring(secret_start_view_format.length + secretStarts)
+    var secretEnds = substring.indexOf('</SECRET>')
+    if (secretEnds === -1) {
+      break;
+    }
+    const uuid = uuid4()
+    secrets.push({
+      id:uuid,
+      text: substring.slice(0, secretEnds)
+    });
+    newText = newText.replace(/<SECRET>((?!<SECRET>)(.|\n))+<\/SECRET>/m, `<SECRET=${uuid}/>`)
+    secretStarts = textWithTags.indexOf('<SECRET>', secretStarts+1)
+  }
+  return {
+    text: newText,
+    secrets: secrets
+  }
+}
 
 class BioEventDialog extends Component {  
   
   constructor(props) {
     super(props);
     this.state = {
+      secrets: {},
       name: '',
       title: '',
       start: '',
@@ -27,6 +67,7 @@ class BioEventDialog extends Component {
       group: '',
       subgroup: '',
       logo: '',
+      descriptionEdit: '',
       description: '',
       descriptionEditMode: true
     }; 
@@ -40,7 +81,7 @@ class BioEventDialog extends Component {
   };
 
   state2event = () => 
-    pick(this.state, ['name', 'title', 'start', 'end', 'group', 'subgroup', 'logo', 'description']);
+    pick(this.state, ['name', 'title', 'start', 'end', 'group', 'subgroup', 'logo', 'description', 'secrets']);
 
   validateFields = () => 
     !!this.state.name
@@ -50,10 +91,40 @@ class BioEventDialog extends Component {
 
   submitCallback = () => {
     if (this.validateFields()) {
-      this.props.submitCallback(
-        this.state2event());
+      var event = this.state2event();
+      if (this.state.descriptionEditMode) {
+        const textAndSecrets = secretsFromTextWithTags(this.state.descriptionEdit)
+        event.secrets = textAndSecrets.secrets;
+        event.description = textAndSecrets.text;
+      }
+      this.props.submitCallback(event);
     }
   };
+
+  replaceSecretTagsByColor = (text, secrets) => {
+    const re = id => `<p><SECRET=${id}/></p>`;
+    const textWithColors = secrets.reduce((accum, item) => 
+    accum.replace(RegExp(re(item['id']), 'gm'), `<span style="color:rgb(255,0,0)">${this.converter.makeHtml(item['text'])}</span>`),
+    text).replace(secret_start_save_format_reg, '').replace(secret_end_view_format, '')
+    return textWithColors;
+  }
+
+  descriptionEditMode = () => {
+    const descriptionEdit = description2Edit(this.state.description, this.state.secrets)
+    this.setState({
+       descriptionEdit,
+      'descriptionEditMode': true
+    })    
+  }
+
+  descriptionChange = () => {
+    const textAndSecrets = secretsFromTextWithTags(this.state.descriptionEdit)
+    this.setState({
+      'description': textAndSecrets.text,
+      'secrets': textAndSecrets.secrets,
+      'descriptionEditMode': false
+    })
+  }
 
   handleChange = name => event => {
     this.setState({
@@ -66,11 +137,15 @@ class BioEventDialog extends Component {
       var stateCopy = {...this.state};
       Object.keys(this.props.event).forEach(key => stateCopy[key] = this.props.event[key]);
       stateCopy.descriptionEditMode = false;
+      if (stateCopy.descriptionEditMode) {
+        stateCopy.descriptionEdit = description2Edit(stateCopy.description, stateCopy.secrets)
+      }
       this.setState(stateCopy);
     }
   }  
 
   render() {
+    const {secrets} = this.state;
     return (
       <div>
        <Dialog
@@ -85,12 +160,15 @@ class BioEventDialog extends Component {
             </DialogContentText>
             {this.state.descriptionEditMode && (
               <div>
-                <IconButton aria-label="Preview" onClick={() => this.setState({descriptionEditMode: false})}>                  
+                <IconButton aria-label="Preview" onClick={() => {
+                  this.descriptionChange()
+                //  this.setState({descriptionEditMode: false})
+                  }}>                  
                   <PreviewIcon fontSize="small" />
                 </IconButton>                
                 <TextField
-                  value={this.state.description}
-                  onChange={this.handleChange('description')}
+                  value={this.state.descriptionEdit}
+                  onChange={this.handleChange('descriptionEdit')}
                   fullWidth
                   margin = "dense"
                   id = "event_description"
@@ -106,11 +184,11 @@ class BioEventDialog extends Component {
             {!this.state.descriptionEditMode && (
               <div>                 
                 <Paper>  
-                  <IconButton aria-label="Edit" onClick={() => this.setState({descriptionEditMode: true})}>                    
+                  <IconButton aria-label="Edit" onClick={this.descriptionEditMode}>                    
                     <EditIcon fontSize="small" />
                   </IconButton>                                   
                   <article>                  
-                    {renderHTML(githubTemplate(this.converter.makeHtml(this.state.description)))}
+                    {renderHTML(githubTemplate(this.replaceSecretTagsByColor(this.converter.makeHtml(this.state.description), secrets)))}
                   </article>
                 </Paper>
               </div>
