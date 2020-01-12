@@ -74,6 +74,18 @@ export const getLatestBioEvents = (userId, branchId, callback, errorCallback) =>
   return ref;
 };
 
+export const getFilteredEventGroups = (userId, branchId, callback, errorCallback) => {
+  const ref = db.ref(`filtered_event_groups/${userId}/${branchId}`);
+  ref.on("value", callback, errorCallback);
+  return ref;
+};
+
+export const getFilteredPublicEventGroups = (userId, branchId, callback, errorCallback) => {
+  const ref = db.ref(`filtered_public_event_groups/${userId}/${branchId}`);
+  ref.on("value", callback, errorCallback);
+  return ref;
+};
+
 export const getLatestBioSkills = (userId, branchId, callback, errorCallback) => {
   const ref = db.ref(`bio_skills/${userId}/${branchId}`);
   ref.on("value", callback, errorCallback);
