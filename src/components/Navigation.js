@@ -39,7 +39,7 @@ class Navigation extends Component {
           <a id="Diary" href={pathWithParam(routes.DIARY, pathParam1, this.props.pathParam2)}>Diary</a>
         } 
         {(branchIds.length > 0 || this.props.pathParam2) &&   
-          <a id="Privacy" href={pathWithParam(routes.SETTINGS, pathParam1, this.props.pathParam2)}>Privacy</a>
+          <a id="Settings" href={pathWithParam(routes.SETTINGS, pathParam1, this.props.pathParam2)}>Settings</a>
         }
         <a onClick={this.signOut.bind(this)} className="menu-item--small" href="">Sign out</a>
       </Menu>

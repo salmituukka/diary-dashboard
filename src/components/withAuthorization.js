@@ -14,7 +14,7 @@ const withAuthorization = (authCondition) => (Component, disableBranchMenu) => {
       firebase.auth.onAuthStateChanged(authUser => {
         if (!authCondition(authUser) && !this.props.match.params.userId) {
           this.props.history.push(routes.LANDING);
-        } 
+        }
       });
     }
 

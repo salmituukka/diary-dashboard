@@ -13,6 +13,13 @@ import mapValues from 'lodash/mapValues';
 
 class Biography extends Component {
   componentDidMount() {
+    const eventGroupFilterFetcherFnc = !!this.props.userName ? db.getFilteredEventGroups: db.getFilteredPublicEventGroups;
+    this.eventGroupFilterListener = eventGroupFilterFetcherFnc(this.props.userId, this.props.branchId, function(dataSnapshot) {
+      const hiddenEventGroupData = dataSnapshot.val() || {};
+      const hiddenEventGroups = Object.entries(hiddenEventGroupData).filter(entry => !!entry[1]).map(entry=>entry[0]);
+      this.setState({hiddenEventGroups})
+    }.bind(this));
+
     this.bioEventListener = db.getLatestBioEvents(this.props.userId, this.props.branchId, function(dataSnapshot, dataSnapshotSecrets) {
       const unorderedEvents = dataSnapshot.val();
       const secrets = !!dataSnapshotSecrets ? dataSnapshotSecrets.val() || {}: {};
@@ -20,12 +27,18 @@ class Biography extends Component {
         // Create items array
         const keyValPair = Object.keys(unorderedEvents).map(function(key) {
           return [key, Object.assign(unorderedEvents[key], {secrets:Object.values(secrets[key] || [])})];
-        });
+        })//.filter(keyVal => keyVal[1].group.split(",").reduce((accum, val) => (this.filteredEventGroups || {}) ? !this.filteredEventGroups[keyVal[1].group] : true)
         const sortEvents = (ev1,ev2) => {
           return !!ev1[1].subgroup && !!ev2[1].subgroup ? ev1[1].start - ev2[1].start + ev1[1].title > ev2[1].title
           :!!ev1[1].subgroup ? 1: !!ev2[1].subgroup ? -1: ev1[1].start - ev2[1].start + ev1[1].title > ev2[1].title;
         }      
-        const events = mapValues(keyBy(keyValPair.sort(sortEvents), item=> item[0]), (item => item[1]));
+        keyValPair.forEach(keyVal => {
+          keyVal[1].start = moment(keyVal[1].start, 'YYYY-MM-DD')
+          if (!!keyVal[1].end) {
+            keyVal[1].end = moment(keyVal[1].end, 'YYYY-MM-DD')
+          }
+        })
+        const events = mapValues(keyBy(keyValPair.sort(sortEvents), item=> item[0]), (item => item[1]));        
         this.setState({events});
       }
     }.bind(this));
@@ -44,6 +57,7 @@ class Biography extends Component {
   }
 
   componentWillUnmount() {
+    this.eventGroupFilterListener.off();
     this.bioEventListener.off();
     this.bioSkillsListener.off();
     this.bioImageListener.off();
@@ -55,6 +69,7 @@ class Biography extends Component {
     this.state = {      
       events: [],
       skills: [],
+      hiddenEventGroups: [],
       image: undefined,
       error: [],
       timelineHeight: undefined
@@ -104,7 +119,7 @@ class Biography extends Component {
     event.time = moment().format('YYYYMMDDhhmmss');
     event.type = 'ADD';
     const secrets = event.secrets;
-    event.delete('secrets')
+    delete event['secrets'] 
     return db.postLatestBioEvent(this.props.userId, this.props.branchId, event).then((ref) =>
       Promise.all(secrets.map(secret => db.postLatestBioEventSecret(
         (this.props.userId, this.props.branchId, ref.key, secret)
@@ -184,6 +199,7 @@ class Biography extends Component {
   render() {
     const skills = Object.values(this.state.skills);
     const events = Object.values(this.state.events);
+    const {hiddenEventGroups} = this.state;    
     const timelineHeight = this.state.timelineHeight !== undefined ? this.state.timelineHeight: (skills.length > 0 &&  events.length > 0 
       ? 0.3 :skills.length > 0 ? 0: 1);
     return (
@@ -192,6 +208,7 @@ class Biography extends Component {
           <div style = {{marginLeft:'45px'}} onDoubleClick={() => this.setTimelineHeight(1)}>
             <BioTimeline
               events = {events} 
+              hiddenGroups = {hiddenEventGroups} 
               editEventCallback = {this.editEventCallback.bind(this)} 
               deleteEventCallback = {this.deleteEventCallback.bind(this)} 
               heightRatio = {timelineHeight}/>

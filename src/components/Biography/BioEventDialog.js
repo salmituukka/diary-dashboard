@@ -81,7 +81,7 @@ class BioEventDialog extends Component {
   };
 
   state2event = () => 
-    pick(this.state, ['name', 'title', 'start', 'end', 'group', 'subgroup', 'logo', 'description', 'secrets']);
+     pick(this.state, ['name', 'title', 'start', 'end', 'group', 'subgroup', 'logo', 'description', 'secrets']);
 
   validateFields = () => 
     !!this.state.name
@@ -136,6 +136,10 @@ class BioEventDialog extends Component {
     if (!!this.props.event) {
       var stateCopy = {...this.state};
       Object.keys(this.props.event).forEach(key => stateCopy[key] = this.props.event[key]);
+      stateCopy.start = stateCopy.start.format('YYYY-MM-DD');
+      if (!!stateCopy.end) {
+        stateCopy.end = stateCopy.end.format('YYYY-MM-DD');
+      }
       stateCopy.descriptionEditMode = false;
       if (stateCopy.descriptionEditMode) {
         stateCopy.descriptionEdit = description2Edit(stateCopy.description, stateCopy.secrets)

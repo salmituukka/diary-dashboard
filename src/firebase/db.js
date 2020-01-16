@@ -217,9 +217,26 @@ export const deleteBioImage = (userId, branchId) => {
   return remove(db.ref(`bio_images/${userId}/${branchId}`));
 };
 
+export const putFilteredEventGroups = (userId, branchId, eventGroups) => {
+  return put(db.ref(`filtered_event_groups/${userId}/${branchId}`), eventGroups);
+};
+
+export const putFilteredPublicEventGroups = (userId, branchId, eventGroups) => {
+  return put(db.ref(`filtered_public_event_groups/${userId}/${branchId}`), eventGroups);
+};
+
+export const deleteFilteredPublicEventGroups = (userId, branchId) => {
+  return remove(db.ref(`filtered_event_groups/${userId}/${branchId}`));
+};
+
+export const deleteFilteredEventGroups = (userId, branchId) => {
+  return remove(db.ref(`filtered_public_event_groups/${userId}/${branchId}`));
+};
+
 export const putPrivacySettings = (userId, branchId, privacySettings) => {
   return put(db.ref(`privacy_settings/${userId}/${branchId}`), privacySettings);
 };
+
 export const deletePrivacySettings = (userId, branchId) => {
   return remove(db.ref(`privacy_settings/${userId}/${branchId}`));
 };
@@ -259,7 +276,9 @@ export const deleteBranch = (userId, branchId) =>
     deleteBioSkillEvents(userId, branchId),
     deleteBioEventEvents(userId, branchId),
     deleteBioEventSecretEvents(userId, branchId),
-    deleteBioImage(userId, branchId)    
+    deleteBioImage(userId, branchId),
+    deleteFilteredPublicEventGroups(userId, branchId),
+    deleteFilteredEventGroups(userId, branchId)
   ]).then(() => 
     remove(db.ref(`branches/${userId}/${branchId}`)))
 

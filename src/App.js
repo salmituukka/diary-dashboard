@@ -43,7 +43,7 @@ class App extends Component {
             component={Mission}
           />
           <Route
-            path={`${routes.PLAN}/:branchId/:userId?`}
+            exact path={`${routes.PLAN}/:branchId/:userId?`}
             component={Plan}
           />
           <Route
