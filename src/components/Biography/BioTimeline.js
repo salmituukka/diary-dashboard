@@ -77,7 +77,7 @@ class BioTimeline extends Component {
     }
     
     if (!!this.start && prevProps === this.props) {
-      this.timelineRef.current.$el.setWindow(this.start, this.end)  
+      //this.timelineRef.current.$el.setWindow(this.start, this.end, {animation: {duration: 2000}})  
     } else {
       this.timelineRef.current.$el.fit({animation: {duration: 2000}});              
     }
@@ -94,7 +94,7 @@ class BioTimeline extends Component {
 
   getItems(startTime, endTime) {
     const suppressMode = this.state.height < 150;    
-    const groupNames = uniq(flatten(this.props.events.map(event => event.group.split(','))))
+    const groupNames = uniq(flatten(this.props.events.map(event => event.group.split(','))).map(g=>g.trim()))
       .filter(group => this.props.hiddenGroups.indexOf(group) < 0);    
     const groupHeight = (numSubgroups) => Math.max(5, this.state.height * (60/184) *3 /(groupNames.length * numSubgroups) -20 + (numSubgroups-1)*4);
     const contentWithoutImage = (content, size) => `<div>${content}<img src=${require('../../images/heart.png')} alt ="" width =0 height="${groupHeight(size||1)}"></div>`;
@@ -105,7 +105,7 @@ class BioTimeline extends Component {
       return event;
     });
 
-    const overlappingEvents = groupNames.map(group => eventsWithId.filter(event =>event.group.split(",").indexOf(group) >=0))
+    const overlappingEvents = groupNames.map(group => eventsWithId.filter(event =>event.group.split(",").map(g=>g.trim()).indexOf(group) >=0))
       .map(groupEvents=>groupEvents.filter(event => !!event.end && !!event.subgroup && event.subgroup.length > 0)
         .map(event => groupEvents.filter(other => event.start <= other.start && event.end >= other.start)).filter(events => events.length > 1).map(events => 
           keyBy(events.map((other, index) => { 
@@ -119,13 +119,13 @@ class BioTimeline extends Component {
       });
 
     const minDistance = isFinite(endTime) ? moment(endTime).diff(moment(startTime), 'days') / this.state.width * groupHeight(1): 10;
-    const closeEvents = groupNames.map(group => eventsWithId.filter(event =>event.group.split(",").indexOf(group) >=0))
+    const closeEvents = groupNames.map(group => eventsWithId.filter(event =>event.group.split(",").map(g=>g.trim()).indexOf(group) >=0))
     .map(groupEvents=>groupEvents
         .filter(event => !event.end && groupEvents.map(other => event.start < other.start && other.start.diff(event.start, 'days') < minDistance && other !== event).some(a=>a)))
 
     const items = uniq(flatten(this.props.events
       .map((event, index) => 
-        event.group.split(',').filter( group => this.props.hiddenGroups.indexOf(group) < 0)
+        event.group.split(',').map(g=>g.trim()).filter( group => this.props.hiddenGroups.indexOf(group) < 0)
           .map((group, indexInGroup) => {
           const groupIndex = groupNames.indexOf(group)
           const subgroupIndex = overlappingEvents[groupIndex] && overlappingEvents[groupIndex][index] ? overlappingEvents[groupIndex][index].index: undefined
@@ -152,8 +152,8 @@ class BioTimeline extends Component {
     const suppressMode = this.state.height < 150;    
     const options = {
       locale: 'en',
-      start: moment(),
-      end: this.state.selectedEvent >= 0? this.props.events[this.state.selectedEvent].start.add(1,'day'): moment().add(1,'week'),
+      start: this.start || moment(),
+      end: this.end || moment().add(1,'week'),
       height: this.state.height,
       margin: {
         axis: 25,
@@ -168,7 +168,7 @@ class BioTimeline extends Component {
       zoomMin:1000*60*60*24*7, // one week
       zoomMax:1000*60*60*24*365.25*100 // 100 years
     };
-    const groupNames = uniq(flatten(this.props.events.map(event => event.group.split(','))))
+    const groupNames = uniq(flatten(this.props.events.map(event => event.group.split(','))).map(g=>g.trim()))
       .filter(group => this.props.hiddenGroups.indexOf(group) < 0);    
     const groupHeight = (numSubgroups) => Math.max(5, this.state.height * (60/184) *3 /(groupNames.length * numSubgroups) -20 + (numSubgroups-1)*4);
     const contentWithoutImage = (content) => `<div>${content}<img src=${require('../../images/heart.png')} alt ="" width =0 height="${groupHeight(1)}"></div>`;
@@ -187,8 +187,8 @@ class BioTimeline extends Component {
       return event;
     });
 
-    const evStarts = flatten(groupNames.map(group => eventsWithId.filter(event =>event.group.split(",").indexOf(group) >=0))).map(ev=>ev.start)
-    const evEnds = flatten(groupNames.map(group => eventsWithId.filter(event =>event.group.split(",").indexOf(group) >=0))).map(ev=>ev.end)
+    const evStarts = flatten(groupNames.map(group => eventsWithId.filter(event =>event.group.split(",").map(g=>g.trim()).indexOf(group) >=0))).map(ev=>ev.start)
+    const evEnds = flatten(groupNames.map(group => eventsWithId.filter(event =>event.group.split(",").map(g=>g.trim()).indexOf(group) >=0))).map(ev=>ev.end)
     const startTime = Math.min(...evStarts)
     const endTime = Math.max(...evStarts, ...evEnds)
 

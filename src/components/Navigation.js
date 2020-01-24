@@ -10,7 +10,7 @@ const pathWithParam = (path, param1, param2) =>
 class Navigation extends Component {
   signOut = () => {
     if (!!this.props.authUser) {
-      auth.doSignOut()
+      auth.doSignOut().then(()=>this.props.history.push(`${routes.LANDING}`))
     } else {
       this.props.history.push(`${routes.LANDING}`);
     }

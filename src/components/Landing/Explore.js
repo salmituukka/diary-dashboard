@@ -46,7 +46,7 @@ class ExploreForm extends Component {
     } = this.props;
 
     this.setState({ ...INITIAL_STATE });
-    history.push(`${routes.DIARY}/${branchId}/${userId}`);
+    history.push(`${routes.BIO}/${branchId}/${userId}`);
     event.preventDefault();
   }
 

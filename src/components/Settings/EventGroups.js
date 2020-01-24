@@ -26,7 +26,7 @@ class EventGroups extends React.Component {
     db.getLatestBioEvents(this.props.userId, this.props.branchId, function(dataSnapshot) {
       const allEvents = dataSnapshot.val();
       if (allEvents != null) {
-        const eventGroupNames = uniq(flatten(Object.values(allEvents).map(event=>event['group'].split(','))))      
+        const eventGroupNames = uniq(flatten(Object.values(allEvents).map(event=>event['group'].split(','))).map(g=>g.trim()))    
         db.getFilteredEventGroups(this.props.userId, this.props.branchId, function(filtEventsSnapshot) {        
           const filteredEventGroups = filtEventsSnapshot.val() || {};
             const eventGroups = eventGroupNames.reduce((accum, evGroup) => Object.assign({}, accum, {[evGroup]: filteredEventGroups[evGroup] || false}), {})
@@ -36,7 +36,7 @@ class EventGroups extends React.Component {
         }.bind(this));
         db.getFilteredPublicEventGroups(this.props.userId, this.props.branchId, function(filtEventsSnapshot) {
           const filteredEventGroups = filtEventsSnapshot.val() || {};          
-          const eventGroupNames = uniq(flatten(Object.values(allEvents).map(event=>event['group'].split(','))))
+          const eventGroupNames = uniq(flatten(Object.values(allEvents).map(event=>event['group'].split(','))).map(g=>g.trim()))
           const eventGroupsPublic = eventGroupNames.reduce((accum, evGroup) => Object.assign({}, accum, {[evGroup]: filteredEventGroups[evGroup] || false}), {})
           this.setState({
             eventGroupsPublic
